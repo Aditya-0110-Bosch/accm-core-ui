@@ -12,6 +12,7 @@ import { Route as rootRouteImport } from './routes/__root'
 import { Route as TalentRouteImport } from './routes/talent'
 import { Route as SkillsRouteImport } from './routes/skills'
 import { Route as MarketplaceRouteImport } from './routes/marketplace'
+import { Route as InsightsRouteImport } from './routes/insights'
 import { Route as AiMatchingRouteImport } from './routes/ai-matching'
 import { Route as IndexRouteImport } from './routes/index'
 
@@ -30,6 +31,11 @@ const MarketplaceRoute = MarketplaceRouteImport.update({
   path: '/marketplace',
   getParentRoute: () => rootRouteImport,
 } as any)
+const InsightsRoute = InsightsRouteImport.update({
+  id: '/insights',
+  path: '/insights',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AiMatchingRoute = AiMatchingRouteImport.update({
   id: '/ai-matching',
   path: '/ai-matching',
@@ -44,6 +50,7 @@ const IndexRoute = IndexRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/ai-matching': typeof AiMatchingRoute
+  '/insights': typeof InsightsRoute
   '/marketplace': typeof MarketplaceRoute
   '/skills': typeof SkillsRoute
   '/talent': typeof TalentRoute
@@ -51,6 +58,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/ai-matching': typeof AiMatchingRoute
+  '/insights': typeof InsightsRoute
   '/marketplace': typeof MarketplaceRoute
   '/skills': typeof SkillsRoute
   '/talent': typeof TalentRoute
@@ -59,21 +67,42 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/ai-matching': typeof AiMatchingRoute
+  '/insights': typeof InsightsRoute
   '/marketplace': typeof MarketplaceRoute
   '/skills': typeof SkillsRoute
   '/talent': typeof TalentRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/ai-matching' | '/marketplace' | '/skills' | '/talent'
+  fullPaths:
+    | '/'
+    | '/ai-matching'
+    | '/insights'
+    | '/marketplace'
+    | '/skills'
+    | '/talent'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/ai-matching' | '/marketplace' | '/skills' | '/talent'
-  id: '__root__' | '/' | '/ai-matching' | '/marketplace' | '/skills' | '/talent'
+  to:
+    | '/'
+    | '/ai-matching'
+    | '/insights'
+    | '/marketplace'
+    | '/skills'
+    | '/talent'
+  id:
+    | '__root__'
+    | '/'
+    | '/ai-matching'
+    | '/insights'
+    | '/marketplace'
+    | '/skills'
+    | '/talent'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AiMatchingRoute: typeof AiMatchingRoute
+  InsightsRoute: typeof InsightsRoute
   MarketplaceRoute: typeof MarketplaceRoute
   SkillsRoute: typeof SkillsRoute
   TalentRoute: typeof TalentRoute
@@ -102,6 +131,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof MarketplaceRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/insights': {
+      id: '/insights'
+      path: '/insights'
+      fullPath: '/insights'
+      preLoaderRoute: typeof InsightsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/ai-matching': {
       id: '/ai-matching'
       path: '/ai-matching'
@@ -122,6 +158,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AiMatchingRoute: AiMatchingRoute,
+  InsightsRoute: InsightsRoute,
   MarketplaceRoute: MarketplaceRoute,
   SkillsRoute: SkillsRoute,
   TalentRoute: TalentRoute,
