@@ -74,14 +74,13 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
-      { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { title: "ACCM — AI Talent Intelligence & Workforce Supply Chain" },
+      { name: "description", content: "Active Competency Cluster Model — an AI-native operating system for skills, demand, and workforce orchestration." },
+      { name: "author", content: "ACCM" },
+      { property: "og:title", content: "ACCM — AI Talent Intelligence Platform" },
+      { property: "og:description", content: "Skills intelligence, demand marketplace, and AI matching for the modern enterprise." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
-      { name: "twitter:site", content: "@Lovable" },
     ],
     links: [
       {
