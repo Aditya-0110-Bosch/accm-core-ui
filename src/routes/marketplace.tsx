@@ -250,6 +250,13 @@ function Marketplace() {
           </div>
         </div>
       </PageBody>
+
+      <DemandWizard
+        open={wizardOpen}
+        onClose={() => setWizardOpen(false)}
+        onCreate={handleCreate}
+        nextId={previewId}
+      />
     </>
   );
 }
