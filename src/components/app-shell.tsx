@@ -14,6 +14,7 @@ import {
   Plus,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { CocaColaMark, CocaColaBadge } from "@/components/coca-cola-mark";
 
 const nav = [
   { to: "/", label: "Overview", icon: LayoutGrid },
@@ -35,12 +36,14 @@ export function AppShell({ children }: { children: React.ReactNode }) {
       {/* Sidebar */}
       <aside className="hidden md:flex w-64 shrink-0 flex-col border-r border-border bg-sidebar">
         <div className="px-5 py-5 flex items-center gap-2.5">
-          <div className="relative h-8 w-8 rounded-lg bg-gradient-brand grid place-items-center shadow-glow">
-            <div className="h-3 w-3 rounded-sm bg-white/90" />
+          <div className="relative h-9 w-9 rounded-lg bg-gradient-brand grid place-items-center shadow-glow">
+            <span className="font-script text-base text-white leading-none">C</span>
           </div>
           <div className="flex flex-col leading-tight">
             <span className="text-sm font-semibold tracking-tight">ACCM</span>
-            <span className="text-[11px] text-muted-foreground">Talent Intelligence</span>
+            <span className="text-[11px] text-muted-foreground">
+              for <CocaColaMark className="text-[13px]" />
+            </span>
           </div>
         </div>
 
@@ -69,8 +72,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
           })}
         </nav>
 
-        <div className="m-3 rounded-lg border border-sidebar-border bg-surface-elevated p-3">
-          <div className="flex items-center gap-2 text-xs font-medium">
+        <div className="m-3 rounded-lg border border-sidebar-border bg-gradient-to-br from-brand/8 to-transparent p-3">
+          <CocaColaBadge />
+          <div className="mt-2 flex items-center gap-2 text-xs font-medium">
             <span className="h-1.5 w-1.5 rounded-full bg-success animate-pulse-soft" />
             Sync · Skills Master
           </div>
@@ -92,6 +96,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 function Topbar() {
   return (
     <header className="sticky top-0 z-30 h-14 border-b border-border bg-background/80 backdrop-blur-md flex items-center gap-3 px-6">
+      <div className="hidden lg:flex items-center gap-2 pr-3 mr-1 border-r border-border h-8">
+        <CocaColaMark className="text-lg" />
+      </div>
       <div className="relative flex-1 max-w-xl">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" strokeWidth={1.75} />
         <input
