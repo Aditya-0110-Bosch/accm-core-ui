@@ -1,7 +1,9 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useMemo, useState } from "react";
 import { PageBody, PageHeader } from "@/components/page";
 import { MapPin, Clock, Users, Sparkles, ArrowRight, Filter, Plus, CheckCircle2 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { DemandWizard, nextDemandId, type Demand } from "@/components/demand-wizard";
 
 export const Route = createFileRoute("/marketplace")({
   head: () => ({
