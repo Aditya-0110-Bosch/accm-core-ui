@@ -107,7 +107,10 @@ function Marketplace() {
                 Project, role, skills, and resourcing — Copilot drafts the spec while you type.
               </p>
             </div>
-            <button className="h-10 px-4 rounded-md bg-foreground text-background text-sm font-medium inline-flex items-center gap-2">
+            <button
+              onClick={() => setWizardOpen(true)}
+              className="h-10 px-4 rounded-md bg-foreground text-background text-sm font-medium inline-flex items-center gap-2 hover:opacity-90 transition"
+            >
               Start wizard <ArrowRight className="h-4 w-4" />
             </button>
           </div>
