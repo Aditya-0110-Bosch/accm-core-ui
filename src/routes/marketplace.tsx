@@ -69,6 +69,12 @@ const seedDemands: Demand[] = [
 const stages = ["Draft", "Approved", "Sourcing", "Shortlisting", "Fulfilled"];
 
 function Marketplace() {
+  const [demands, setDemands] = useState<Demand[]>(seedDemands);
+  const [wizardOpen, setWizardOpen] = useState(false);
+  const previewId = useMemo(() => nextDemandId(demands), [demands]);
+
+  const handleCreate = (d: Demand) => setDemands((prev) => [d, ...prev]);
+
   return (
     <>
       <PageHeader
@@ -80,7 +86,10 @@ function Marketplace() {
             <button className="h-9 px-3 inline-flex items-center gap-1.5 rounded-md border border-border bg-surface-elevated text-sm font-medium hover:bg-muted transition">
               <Filter className="h-4 w-4" /> Filter
             </button>
-            <button className="h-9 px-3.5 inline-flex items-center gap-1.5 rounded-md bg-gradient-brand text-brand-foreground text-sm font-medium shadow-sm">
+            <button
+              onClick={() => setWizardOpen(true)}
+              className="h-9 px-3.5 inline-flex items-center gap-1.5 rounded-md bg-gradient-brand text-brand-foreground text-sm font-medium shadow-sm hover:opacity-95 transition"
+            >
               <Plus className="h-4 w-4" /> New Demand
             </button>
           </>
