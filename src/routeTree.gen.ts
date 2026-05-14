@@ -9,11 +9,17 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TalentRouteImport } from './routes/talent'
 import { Route as SkillsRouteImport } from './routes/skills'
 import { Route as MarketplaceRouteImport } from './routes/marketplace'
 import { Route as AiMatchingRouteImport } from './routes/ai-matching'
 import { Route as IndexRouteImport } from './routes/index'
 
+const TalentRoute = TalentRouteImport.update({
+  id: '/talent',
+  path: '/talent',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const SkillsRoute = SkillsRouteImport.update({
   id: '/skills',
   path: '/skills',
@@ -40,12 +46,14 @@ export interface FileRoutesByFullPath {
   '/ai-matching': typeof AiMatchingRoute
   '/marketplace': typeof MarketplaceRoute
   '/skills': typeof SkillsRoute
+  '/talent': typeof TalentRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/ai-matching': typeof AiMatchingRoute
   '/marketplace': typeof MarketplaceRoute
   '/skills': typeof SkillsRoute
+  '/talent': typeof TalentRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -53,13 +61,14 @@ export interface FileRoutesById {
   '/ai-matching': typeof AiMatchingRoute
   '/marketplace': typeof MarketplaceRoute
   '/skills': typeof SkillsRoute
+  '/talent': typeof TalentRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/ai-matching' | '/marketplace' | '/skills'
+  fullPaths: '/' | '/ai-matching' | '/marketplace' | '/skills' | '/talent'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/ai-matching' | '/marketplace' | '/skills'
-  id: '__root__' | '/' | '/ai-matching' | '/marketplace' | '/skills'
+  to: '/' | '/ai-matching' | '/marketplace' | '/skills' | '/talent'
+  id: '__root__' | '/' | '/ai-matching' | '/marketplace' | '/skills' | '/talent'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -67,10 +76,18 @@ export interface RootRouteChildren {
   AiMatchingRoute: typeof AiMatchingRoute
   MarketplaceRoute: typeof MarketplaceRoute
   SkillsRoute: typeof SkillsRoute
+  TalentRoute: typeof TalentRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/talent': {
+      id: '/talent'
+      path: '/talent'
+      fullPath: '/talent'
+      preLoaderRoute: typeof TalentRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/skills': {
       id: '/skills'
       path: '/skills'
@@ -107,6 +124,7 @@ const rootRouteChildren: RootRouteChildren = {
   AiMatchingRoute: AiMatchingRoute,
   MarketplaceRoute: MarketplaceRoute,
   SkillsRoute: SkillsRoute,
+  TalentRoute: TalentRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
