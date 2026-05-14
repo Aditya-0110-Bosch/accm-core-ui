@@ -7,6 +7,8 @@ import {
   LineChart,
   ShieldCheck,
   Briefcase,
+  FolderKanban,
+  KeyRound,
   Search,
   Bell,
   Plus,
@@ -15,11 +17,13 @@ import { cn } from "@/lib/utils";
 
 const nav = [
   { to: "/", label: "Overview", icon: LayoutGrid },
+  { to: "/projects", label: "Projects", icon: FolderKanban },
   { to: "/skills", label: "Skills Explorer", icon: Network },
   { to: "/marketplace", label: "Demand Marketplace", icon: Briefcase },
   { to: "/ai-matching", label: "AI Matching", icon: Sparkles },
   { to: "/talent", label: "Talent Workspace", icon: Users },
   { to: "/insights", label: "Workforce Insights", icon: LineChart },
+  { to: "/governance", label: "Roles & Governance", icon: KeyRound },
   { to: "/admin", label: "Admin & Governance", icon: ShieldCheck },
 ];
 

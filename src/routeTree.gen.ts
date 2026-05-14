@@ -11,8 +11,10 @@
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as TalentRouteImport } from './routes/talent'
 import { Route as SkillsRouteImport } from './routes/skills'
+import { Route as ProjectsRouteImport } from './routes/projects'
 import { Route as MarketplaceRouteImport } from './routes/marketplace'
 import { Route as InsightsRouteImport } from './routes/insights'
+import { Route as GovernanceRouteImport } from './routes/governance'
 import { Route as AiMatchingRouteImport } from './routes/ai-matching'
 import { Route as AdminRouteImport } from './routes/admin'
 import { Route as IndexRouteImport } from './routes/index'
@@ -27,6 +29,11 @@ const SkillsRoute = SkillsRouteImport.update({
   path: '/skills',
   getParentRoute: () => rootRouteImport,
 } as any)
+const ProjectsRoute = ProjectsRouteImport.update({
+  id: '/projects',
+  path: '/projects',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const MarketplaceRoute = MarketplaceRouteImport.update({
   id: '/marketplace',
   path: '/marketplace',
@@ -35,6 +42,11 @@ const MarketplaceRoute = MarketplaceRouteImport.update({
 const InsightsRoute = InsightsRouteImport.update({
   id: '/insights',
   path: '/insights',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const GovernanceRoute = GovernanceRouteImport.update({
+  id: '/governance',
+  path: '/governance',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AiMatchingRoute = AiMatchingRouteImport.update({
@@ -57,8 +69,10 @@ export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/ai-matching': typeof AiMatchingRoute
+  '/governance': typeof GovernanceRoute
   '/insights': typeof InsightsRoute
   '/marketplace': typeof MarketplaceRoute
+  '/projects': typeof ProjectsRoute
   '/skills': typeof SkillsRoute
   '/talent': typeof TalentRoute
 }
@@ -66,8 +80,10 @@ export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/ai-matching': typeof AiMatchingRoute
+  '/governance': typeof GovernanceRoute
   '/insights': typeof InsightsRoute
   '/marketplace': typeof MarketplaceRoute
+  '/projects': typeof ProjectsRoute
   '/skills': typeof SkillsRoute
   '/talent': typeof TalentRoute
 }
@@ -76,8 +92,10 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/admin': typeof AdminRoute
   '/ai-matching': typeof AiMatchingRoute
+  '/governance': typeof GovernanceRoute
   '/insights': typeof InsightsRoute
   '/marketplace': typeof MarketplaceRoute
+  '/projects': typeof ProjectsRoute
   '/skills': typeof SkillsRoute
   '/talent': typeof TalentRoute
 }
@@ -87,8 +105,10 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/ai-matching'
+    | '/governance'
     | '/insights'
     | '/marketplace'
+    | '/projects'
     | '/skills'
     | '/talent'
   fileRoutesByTo: FileRoutesByTo
@@ -96,8 +116,10 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/ai-matching'
+    | '/governance'
     | '/insights'
     | '/marketplace'
+    | '/projects'
     | '/skills'
     | '/talent'
   id:
@@ -105,8 +127,10 @@ export interface FileRouteTypes {
     | '/'
     | '/admin'
     | '/ai-matching'
+    | '/governance'
     | '/insights'
     | '/marketplace'
+    | '/projects'
     | '/skills'
     | '/talent'
   fileRoutesById: FileRoutesById
@@ -115,8 +139,10 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AdminRoute: typeof AdminRoute
   AiMatchingRoute: typeof AiMatchingRoute
+  GovernanceRoute: typeof GovernanceRoute
   InsightsRoute: typeof InsightsRoute
   MarketplaceRoute: typeof MarketplaceRoute
+  ProjectsRoute: typeof ProjectsRoute
   SkillsRoute: typeof SkillsRoute
   TalentRoute: typeof TalentRoute
 }
@@ -137,6 +163,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SkillsRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/projects': {
+      id: '/projects'
+      path: '/projects'
+      fullPath: '/projects'
+      preLoaderRoute: typeof ProjectsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/marketplace': {
       id: '/marketplace'
       path: '/marketplace'
@@ -149,6 +182,13 @@ declare module '@tanstack/react-router' {
       path: '/insights'
       fullPath: '/insights'
       preLoaderRoute: typeof InsightsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/governance': {
+      id: '/governance'
+      path: '/governance'
+      fullPath: '/governance'
+      preLoaderRoute: typeof GovernanceRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/ai-matching': {
@@ -179,8 +219,10 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AdminRoute: AdminRoute,
   AiMatchingRoute: AiMatchingRoute,
+  GovernanceRoute: GovernanceRoute,
   InsightsRoute: InsightsRoute,
   MarketplaceRoute: MarketplaceRoute,
+  ProjectsRoute: ProjectsRoute,
   SkillsRoute: SkillsRoute,
   TalentRoute: TalentRoute,
 }
