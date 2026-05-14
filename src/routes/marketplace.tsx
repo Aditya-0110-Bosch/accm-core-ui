@@ -168,10 +168,16 @@ function Marketplace() {
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             {demands.map((d) => (
-              <div key={d.id} className="rounded-xl border border-border bg-card p-5 hover:border-ring/40 hover:shadow-elevated transition">
+              <div
+                key={d.id}
+                className={cn(
+                  "rounded-xl border bg-card p-5 hover:shadow-elevated transition",
+                  d.isNew ? "border-ring/50 shadow-glow" : "border-border hover:border-ring/40"
+                )}
+              >
                 <div className="flex items-start justify-between">
                   <div>
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 flex-wrap">
                       <span className="text-[11px] font-mono text-muted-foreground">{d.id}</span>
                       <span className={cn(
                         "text-[11px] px-1.5 py-0.5 rounded font-medium",
@@ -179,13 +185,18 @@ function Marketplace() {
                         d.priority === "High" && "bg-warning/15 text-warning",
                         d.priority === "Medium" && "bg-info/10 text-info",
                       )}>{d.priority}</span>
+                      {d.isNew && (
+                        <span className="text-[10px] uppercase tracking-wider px-1.5 py-0.5 rounded font-semibold bg-gradient-brand text-brand-foreground">
+                          New
+                        </span>
+                      )}
                     </div>
                     <h3 className="text-base font-semibold mt-1.5">{d.role}</h3>
                     <p className="text-xs text-muted-foreground">{d.cluster}</p>
                   </div>
                   <div className="text-right">
                     <div className="inline-flex items-center gap-1 text-xs font-medium text-brand bg-accent px-2 py-1 rounded-md">
-                      <Sparkles className="h-3 w-3" /> {d.match}%
+                      <Sparkles className="h-3 w-3" /> {d.isNew ? "—" : `${d.match}%`}
                     </div>
                   </div>
                 </div>
