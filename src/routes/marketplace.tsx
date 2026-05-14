@@ -15,7 +15,7 @@ export const Route = createFileRoute("/marketplace")({
   component: Marketplace,
 });
 
-const demands = [
+const seedDemands: Demand[] = [
   {
     id: "DM-2026-000145",
     role: "Senior ML Engineer",
