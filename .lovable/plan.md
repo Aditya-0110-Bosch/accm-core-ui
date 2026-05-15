@@ -1,78 +1,88 @@
-# RBAC for ACCM — Roles & Page Access
+# RBAC for ACCM — Streamlined 5-Role Model
 
-The app currently has 9 routes but no auth or access enforcement. Below is a recommended role model that aligns with the workflows already represented in `/governance` (PMO, PM, Delivery, RM, Talent, Exec, Admin) and a clear page-level distribution.
+Reduced from 7 roles to **5 roles** by merging overlapping personas. Each role still cleanly maps to a real workflow in the app.
 
-## 1. Recommended Roles (7)
+## 1. The 5 Roles
 
-| # | Role | Who it represents | Primary intent |
-|---|------|-------------------|----------------|
-| 1 | **Super Admin** | Platform owner / IT | Identity, secrets, integrations, governance config |
-| 2 | **PMO / Workforce Ops** | PMO office, COE | Owns projects portfolio, demand pipeline, governance |
-| 3 | **Project Manager (PM)** | Project owners | Creates demand, shortlists, manages own projects |
-| 4 | **Delivery Manager** | BU / delivery heads | Oversees delivery unit, capacity, project health |
-| 5 | **Resource Manager (RM)** | Staffing / bench mgmt | Approves allocations, balances utilization |
-| 6 | **Talent / Associate** | All 500 employees | Self profile, skills, applies to demand |
-| 7 | **Leadership / Exec** | CXO, BU heads (read) | Org-wide capability and workforce insights |
 
-Optional 8th: **Skill Steward** (governs skill taxonomy & approvals) — can also be folded into PMO.
+| #   | Role                 | Merges                             | Who it represents             | Primary intent                                            |
+| --- | -------------------- | ---------------------------------- | ----------------------------- | --------------------------------------------------------- |
+| 1   | **Admin**            | (Super Admin)                      | Platform/IT owner             | Identity, governance config, integrations, full override  |
+| 2   | **PMO**              | PMO + Leadership/Exec read         | Workforce ops, BU heads, CXOs | Owns portfolio, demand pipeline, org-wide insights        |
+| 3   | **Manager**          | Project Manager + Delivery Manager | PMs and delivery heads        | Runs projects, raises demand, oversees BU delivery        |
+| 4   | **Resource Manager** | (RM, kept distinct)                | Staffing / bench mgmt         | Allocates talent, approves staffing, balances utilization |
+| 5   | **Associate**        | Talent / Employee                  | All ~500 employees            | Profile, skills, browse & apply to demand                 |
+
+
+Why these merges:
+
+- **Delivery Mgr → Manager**: both create/own work and need scoped project + team views; differing only by scope (own project vs own BU), which is data-scoping, not a separate role.
+- **Exec → PMO (read-tier)**: leadership only consumes insights; PMO already has those screens. We expose an "executive view" via a flag, not a separate role.
+- **Skill Steward** absorbed into PMO/Admin.
 
 ## 2. Page → Role Access Matrix
 
-Levels: **F** Full · **S** Scoped (own projects / own BU / self) · **R** Read-only · **—** No access
+Levels: **F** Full · **S** Scoped (own project/BU/self) · **R** Read-only · **—** No access
 
 ```text
-Route                  Admin  PMO   PM    Delivery  RM    Talent  Exec
-/ (Overview)             F     F    S       S        S      S       R
-/projects                F     F    S       S        R      —       R
-/skills (Explorer)       F     F    R       R        R      S       R
-/marketplace (Demand)    F     F    S       R        R      S*      R
-/ai-matching             F     F    S       S        F      —       R
-/talent (Workspace)      F     R    R       S        F      S       R
-/insights                F     F    S       S        S      —       F
-/governance (RBAC)       F     R    —       —        —      —       —
-/admin                   F     —    —       —        —      —       —
+Route                  Admin   PMO    Manager   RM    Associate
+/ (Overview)             F      F       S        S       S
+/projects                F      F       S        R       —
+/skills (Explorer)       F      F       R        R       S
+/marketplace (Demand)    F      F       S        R       S*
+/ai-matching             F      F       S        F       —
+/talent (Workspace)      F      R       S        F       S
+/insights                F      F       S        S       —
+/governance (RBAC)       F      R       —        —       —
+/admin                   F      —       —        —       —
 ```
 
-*Talent on `/marketplace` = browse + apply only (no create/edit demand).
+*Associate on `/marketplace` = browse open demand + apply (no create/edit).
 
-## 3. Action-Level Permissions (the important ones)
+## 3. Action-Level Permissions
 
-- **Create Demand** → PM (own project), PMO, Admin
-- **Approve Demand** → PMO, Admin
-- **Approve Allocation** → RM, Delivery (own BU), Admin
-- **Create / Close Project** → PMO, Admin (PM can draft only)
-- **Edit Skill Taxonomy** → PMO / Skill Steward, Admin
-- **Apply to Demand** → Talent (self), PM (nominate)
-- **Manage Users & Roles** → Admin only
-- **View Org-wide Reports** → Exec, PMO, Admin
-- **Edit own profile / skills** → Talent (self)
 
-## 4. Sidebar Visibility Rules
+| Action                    | Allowed roles                        |
+| ------------------------- | ------------------------------------ |
+| Create / edit Demand      | Manager (own project), PMO, Admin    |
+| Approve Demand            | PMO, Admin                           |
+| Create / close Project    | PMO, Admin (Manager drafts only)     |
+| Approve Allocation        | RM, PMO, Admin                       |
+| Edit Skill Taxonomy       | PMO, Admin                           |
+| Apply to Demand           | Associate (self), Manager (nominate) |
+| Manage Users & Roles      | Admin                                |
+| View Org-wide Reports     | PMO, Admin                           |
+| Edit own profile / skills | Associate (self), all roles for self |
 
-Hide nav items the user cannot access — keeps the UI clean and matches the "modern OS" aesthetic:
 
-- Talent sees: Overview, Skills, Marketplace, Talent (own profile), AI Matching (own matches)
-- PM sees: + Projects (own), Insights (scoped)
-- RM / Delivery: + Talent Workspace, Allocations
-- PMO: full workspace minus `/admin`
-- Admin: everything including `/admin`
-- Exec: read-only across Overview, Projects, Skills, Insights
+## 4. Sidebar Visibility per Role
 
-## 5. Technical Approach (for build phase)
+- **Associate** — Overview · Skills · Marketplace · Talent (self) · AI Matching (own matches only — hidden if no matches)
+- **Manager** — + Projects (own) · Insights (scoped)
+- **Resource Manager** — Overview · Projects (R) · Talent · AI Matching · Insights · Marketplace (R)
+- **PMO** — Everything except `/admin`
+- **Admin** — Everything
 
-- Use Lovable Cloud auth (email + Google) for sign-in.
-- Store roles in a separate `user_roles` table with an `app_role` enum (never on `profiles`) — required to avoid RLS recursion and privilege-escalation.
-- Add a `has_role(uuid, app_role)` SECURITY DEFINER function for RLS policies.
-- Wrap protected routes under a `_authenticated` layout (TanStack Router `beforeLoad` + `redirect`).
-- Add a `_authenticated/_admin` and `_authenticated/_pmo` pathless layouts for role-gated pages (`/admin`, `/governance`).
-- Filter sidebar nav by `auth.hasAnyRole([...])`.
-- Enforce action-level permissions both client-side (UX) and server-side (RLS / serverFn middleware).
+## 5. Technical Approach
 
-## 6. Open Questions (please confirm before build)
+- Enable **Lovable Cloud** auth (Email + Password and Google).
+- DB: `app_role` enum (`admin`, `pmo`, `manager`, `rm`, `associate`) + `user_roles(user_id, role)` table — never on `profiles`.
+- `has_role(uuid, app_role)` SECURITY DEFINER function for RLS.
+- `profiles` table auto-populated via `on_auth_user_created` trigger; default role = `associate`.
+- TanStack route guards:
+  - `_authenticated.tsx` (pathless layout) — redirects to `/login` if no session.
+  - `_authenticated/_admin.tsx` → wraps `/admin`.
+  - `_authenticated/_pmo.tsx` → wraps `/governance`.
+  - All other current routes move under `_authenticated/`.
+- `useAuth()` hook exposes `user`, `roles`, `hasRole`, `hasAnyRole`.
+- `app-shell.tsx` filters the `nav` array via `hasAnyRole`.
+- Action buttons (e.g. "New Demand" topbar, "New role" in governance) gated client-side AND enforced via RLS server-side.
 
-1. Is the **7-role model** above correct, or do you want to merge any (e.g. Delivery + RM, or drop Exec)?
-2. Should **Talent** be the default role auto-assigned on signup?
-3. Sign-in method: **Email + Password + Google** (Lovable Cloud default), or SSO/SAML only (enterprise)?
-4. Do you want a **role-request / approval flow** (user requests PM access → Admin approves), or will Admin assign all roles manually?
+## 6. Confirm before I build
 
-Once confirmed, I'll implement: auth pages, `user_roles` table + RLS, route guards, sidebar filtering, and per-page permission enforcement.
+1. Role names OK as **Admin / PMO / Manager / Resource Manager / Associate**? Or rename "Manager" → "Project Manager"?
+2. Sign-in: **Email + Password + Google** (default), or email-only?
+3. Default role on signup = **Associate** — confirm?
+4. Should Admin be able to **switch roles** (impersonate) for testing? (nice-to-have, optional)
+
+On confirmation I'll: enable Cloud, create the schema + RLS, build login/signup/reset pages, add route guards, filter the sidebar, and gate write actions per role.
