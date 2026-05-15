@@ -24,7 +24,19 @@ const MIME_TYPES = {
   ".wasm": "application/wasm",
 };
 
+// The Cloudflare Workers build (via unenv) replaces real Node.js process
+// methods with stubs that throw. Save them before the import so we can
+// restore them afterward — Azure Application Insights needs these.
+const _savedProcess = {
+  cpuUsage: process.cpuUsage,
+  memoryUsage: process.memoryUsage,
+  resourceUsage: process.resourceUsage,
+  hrtime: process.hrtime,
+};
+
 const { default: worker } = await import("./dist/server/index.js");
+
+Object.assign(process, _savedProcess);
 
 async function tryServeStaticFile(pathname) {
   const filePath = join(CLIENT_DIR, decodeURIComponent(pathname));
