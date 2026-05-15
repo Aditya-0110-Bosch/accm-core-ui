@@ -5,7 +5,7 @@ import { MapPin, Clock, Users, Sparkles, ArrowRight, Filter, Plus, CheckCircle2 
 import { cn } from "@/lib/utils";
 import { DemandWizard, nextDemandId, type Demand } from "@/components/demand-wizard";
 
-export const Route = createFileRoute("/marketplace")({
+export const Route = createFileRoute("/_authenticated/marketplace")({
   head: () => ({
     meta: [
       { title: "Demand Marketplace · ACCM" },

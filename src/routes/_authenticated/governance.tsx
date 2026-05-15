@@ -15,7 +15,7 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export const Route = createFileRoute("/governance")({
+export const Route = createFileRoute("/_authenticated/governance")({
   head: () => ({
     meta: [
       { title: "Roles & Governance · ACCM" },

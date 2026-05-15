@@ -4,7 +4,7 @@ import { PageBody, PageHeader } from "@/components/page";
 import { ChevronRight, ChevronDown, Sparkles, Users, GitBranch, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
 
-export const Route = createFileRoute("/skills")({
+export const Route = createFileRoute("/_authenticated/skills")({
   head: () => ({
     meta: [
       { title: "Skills Explorer · ACCM" },
