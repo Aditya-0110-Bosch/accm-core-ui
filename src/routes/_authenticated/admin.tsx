@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { PageBody, PageHeader } from "@/components/page";
 import { CheckCircle2, Clock, ShieldCheck, GitBranch, Users } from "lucide-react";
 
-export const Route = createFileRoute("/admin")({
+export const Route = createFileRoute("/_authenticated/admin")({
   head: () => ({
     meta: [
       { title: "Admin & Governance · ACCM" },

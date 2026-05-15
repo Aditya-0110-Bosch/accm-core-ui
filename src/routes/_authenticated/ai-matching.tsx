@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { PageBody, PageHeader } from "@/components/page";
 import { Sparkles, Brain, Network, TrendingUp, Shield, GitMerge, Layers, Activity, Zap } from "lucide-react";
 
-export const Route = createFileRoute("/ai-matching")({
+export const Route = createFileRoute("/_authenticated/ai-matching")({
   head: () => ({
     meta: [
       { title: "AI Matching · ACCM" },

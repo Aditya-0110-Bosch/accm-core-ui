@@ -9,100 +9,117 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as TalentRouteImport } from './routes/talent'
-import { Route as SkillsRouteImport } from './routes/skills'
-import { Route as ProjectsRouteImport } from './routes/projects'
-import { Route as MarketplaceRouteImport } from './routes/marketplace'
-import { Route as InsightsRouteImport } from './routes/insights'
-import { Route as GovernanceRouteImport } from './routes/governance'
-import { Route as AiMatchingRouteImport } from './routes/ai-matching'
-import { Route as AdminRouteImport } from './routes/admin'
-import { Route as IndexRouteImport } from './routes/index'
+import { Route as LoginRouteImport } from './routes/login'
+import { Route as AuthenticatedRouteImport } from './routes/_authenticated'
+import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
+import { Route as AuthenticatedTalentRouteImport } from './routes/_authenticated/talent'
+import { Route as AuthenticatedSkillsRouteImport } from './routes/_authenticated/skills'
+import { Route as AuthenticatedProjectsRouteImport } from './routes/_authenticated/projects'
+import { Route as AuthenticatedMarketplaceRouteImport } from './routes/_authenticated/marketplace'
+import { Route as AuthenticatedInsightsRouteImport } from './routes/_authenticated/insights'
+import { Route as AuthenticatedGovernanceRouteImport } from './routes/_authenticated/governance'
+import { Route as AuthenticatedAiMatchingRouteImport } from './routes/_authenticated/ai-matching'
+import { Route as AuthenticatedAdminRouteImport } from './routes/_authenticated/admin'
 
-const TalentRoute = TalentRouteImport.update({
-  id: '/talent',
-  path: '/talent',
+const LoginRoute = LoginRouteImport.update({
+  id: '/login',
+  path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
-const SkillsRoute = SkillsRouteImport.update({
-  id: '/skills',
-  path: '/skills',
+const AuthenticatedRoute = AuthenticatedRouteImport.update({
+  id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ProjectsRoute = ProjectsRouteImport.update({
-  id: '/projects',
-  path: '/projects',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const MarketplaceRoute = MarketplaceRouteImport.update({
-  id: '/marketplace',
-  path: '/marketplace',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const InsightsRoute = InsightsRouteImport.update({
-  id: '/insights',
-  path: '/insights',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const GovernanceRoute = GovernanceRouteImport.update({
-  id: '/governance',
-  path: '/governance',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AiMatchingRoute = AiMatchingRouteImport.update({
-  id: '/ai-matching',
-  path: '/ai-matching',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AdminRoute = AdminRouteImport.update({
-  id: '/admin',
-  path: '/admin',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const IndexRoute = IndexRouteImport.update({
+const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
   id: '/',
   path: '/',
-  getParentRoute: () => rootRouteImport,
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedTalentRoute = AuthenticatedTalentRouteImport.update({
+  id: '/talent',
+  path: '/talent',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedSkillsRoute = AuthenticatedSkillsRouteImport.update({
+  id: '/skills',
+  path: '/skills',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedProjectsRoute = AuthenticatedProjectsRouteImport.update({
+  id: '/projects',
+  path: '/projects',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedMarketplaceRoute =
+  AuthenticatedMarketplaceRouteImport.update({
+    id: '/marketplace',
+    path: '/marketplace',
+    getParentRoute: () => AuthenticatedRoute,
+  } as any)
+const AuthenticatedInsightsRoute = AuthenticatedInsightsRouteImport.update({
+  id: '/insights',
+  path: '/insights',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedGovernanceRoute = AuthenticatedGovernanceRouteImport.update({
+  id: '/governance',
+  path: '/governance',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedAiMatchingRoute = AuthenticatedAiMatchingRouteImport.update({
+  id: '/ai-matching',
+  path: '/ai-matching',
+  getParentRoute: () => AuthenticatedRoute,
+} as any)
+const AuthenticatedAdminRoute = AuthenticatedAdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => AuthenticatedRoute,
 } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
-  '/admin': typeof AdminRoute
-  '/ai-matching': typeof AiMatchingRoute
-  '/governance': typeof GovernanceRoute
-  '/insights': typeof InsightsRoute
-  '/marketplace': typeof MarketplaceRoute
-  '/projects': typeof ProjectsRoute
-  '/skills': typeof SkillsRoute
-  '/talent': typeof TalentRoute
+  '/': typeof AuthenticatedIndexRoute
+  '/login': typeof LoginRoute
+  '/admin': typeof AuthenticatedAdminRoute
+  '/ai-matching': typeof AuthenticatedAiMatchingRoute
+  '/governance': typeof AuthenticatedGovernanceRoute
+  '/insights': typeof AuthenticatedInsightsRoute
+  '/marketplace': typeof AuthenticatedMarketplaceRoute
+  '/projects': typeof AuthenticatedProjectsRoute
+  '/skills': typeof AuthenticatedSkillsRoute
+  '/talent': typeof AuthenticatedTalentRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
-  '/admin': typeof AdminRoute
-  '/ai-matching': typeof AiMatchingRoute
-  '/governance': typeof GovernanceRoute
-  '/insights': typeof InsightsRoute
-  '/marketplace': typeof MarketplaceRoute
-  '/projects': typeof ProjectsRoute
-  '/skills': typeof SkillsRoute
-  '/talent': typeof TalentRoute
+  '/login': typeof LoginRoute
+  '/admin': typeof AuthenticatedAdminRoute
+  '/ai-matching': typeof AuthenticatedAiMatchingRoute
+  '/governance': typeof AuthenticatedGovernanceRoute
+  '/insights': typeof AuthenticatedInsightsRoute
+  '/marketplace': typeof AuthenticatedMarketplaceRoute
+  '/projects': typeof AuthenticatedProjectsRoute
+  '/skills': typeof AuthenticatedSkillsRoute
+  '/talent': typeof AuthenticatedTalentRoute
+  '/': typeof AuthenticatedIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
-  '/admin': typeof AdminRoute
-  '/ai-matching': typeof AiMatchingRoute
-  '/governance': typeof GovernanceRoute
-  '/insights': typeof InsightsRoute
-  '/marketplace': typeof MarketplaceRoute
-  '/projects': typeof ProjectsRoute
-  '/skills': typeof SkillsRoute
-  '/talent': typeof TalentRoute
+  '/_authenticated': typeof AuthenticatedRouteWithChildren
+  '/login': typeof LoginRoute
+  '/_authenticated/admin': typeof AuthenticatedAdminRoute
+  '/_authenticated/ai-matching': typeof AuthenticatedAiMatchingRoute
+  '/_authenticated/governance': typeof AuthenticatedGovernanceRoute
+  '/_authenticated/insights': typeof AuthenticatedInsightsRoute
+  '/_authenticated/marketplace': typeof AuthenticatedMarketplaceRoute
+  '/_authenticated/projects': typeof AuthenticatedProjectsRoute
+  '/_authenticated/skills': typeof AuthenticatedSkillsRoute
+  '/_authenticated/talent': typeof AuthenticatedTalentRoute
+  '/_authenticated/': typeof AuthenticatedIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/login'
     | '/admin'
     | '/ai-matching'
     | '/governance'
@@ -113,7 +130,7 @@ export interface FileRouteTypes {
     | '/talent'
   fileRoutesByTo: FileRoutesByTo
   to:
-    | '/'
+    | '/login'
     | '/admin'
     | '/ai-matching'
     | '/governance'
@@ -122,109 +139,140 @@ export interface FileRouteTypes {
     | '/projects'
     | '/skills'
     | '/talent'
+    | '/'
   id:
     | '__root__'
-    | '/'
-    | '/admin'
-    | '/ai-matching'
-    | '/governance'
-    | '/insights'
-    | '/marketplace'
-    | '/projects'
-    | '/skills'
-    | '/talent'
+    | '/_authenticated'
+    | '/login'
+    | '/_authenticated/admin'
+    | '/_authenticated/ai-matching'
+    | '/_authenticated/governance'
+    | '/_authenticated/insights'
+    | '/_authenticated/marketplace'
+    | '/_authenticated/projects'
+    | '/_authenticated/skills'
+    | '/_authenticated/talent'
+    | '/_authenticated/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
-  AdminRoute: typeof AdminRoute
-  AiMatchingRoute: typeof AiMatchingRoute
-  GovernanceRoute: typeof GovernanceRoute
-  InsightsRoute: typeof InsightsRoute
-  MarketplaceRoute: typeof MarketplaceRoute
-  ProjectsRoute: typeof ProjectsRoute
-  SkillsRoute: typeof SkillsRoute
-  TalentRoute: typeof TalentRoute
+  AuthenticatedRoute: typeof AuthenticatedRouteWithChildren
+  LoginRoute: typeof LoginRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/talent': {
-      id: '/talent'
-      path: '/talent'
-      fullPath: '/talent'
-      preLoaderRoute: typeof TalentRouteImport
+    '/login': {
+      id: '/login'
+      path: '/login'
+      fullPath: '/login'
+      preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/skills': {
-      id: '/skills'
-      path: '/skills'
-      fullPath: '/skills'
-      preLoaderRoute: typeof SkillsRouteImport
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/projects': {
-      id: '/projects'
-      path: '/projects'
-      fullPath: '/projects'
-      preLoaderRoute: typeof ProjectsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/marketplace': {
-      id: '/marketplace'
-      path: '/marketplace'
-      fullPath: '/marketplace'
-      preLoaderRoute: typeof MarketplaceRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/insights': {
-      id: '/insights'
-      path: '/insights'
-      fullPath: '/insights'
-      preLoaderRoute: typeof InsightsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/governance': {
-      id: '/governance'
-      path: '/governance'
-      fullPath: '/governance'
-      preLoaderRoute: typeof GovernanceRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/ai-matching': {
-      id: '/ai-matching'
-      path: '/ai-matching'
-      fullPath: '/ai-matching'
-      preLoaderRoute: typeof AiMatchingRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin': {
-      id: '/admin'
-      path: '/admin'
-      fullPath: '/admin'
-      preLoaderRoute: typeof AdminRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/': {
-      id: '/'
+    '/_authenticated/': {
+      id: '/_authenticated/'
       path: '/'
       fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
+      preLoaderRoute: typeof AuthenticatedIndexRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/talent': {
+      id: '/_authenticated/talent'
+      path: '/talent'
+      fullPath: '/talent'
+      preLoaderRoute: typeof AuthenticatedTalentRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/skills': {
+      id: '/_authenticated/skills'
+      path: '/skills'
+      fullPath: '/skills'
+      preLoaderRoute: typeof AuthenticatedSkillsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/projects': {
+      id: '/_authenticated/projects'
+      path: '/projects'
+      fullPath: '/projects'
+      preLoaderRoute: typeof AuthenticatedProjectsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/marketplace': {
+      id: '/_authenticated/marketplace'
+      path: '/marketplace'
+      fullPath: '/marketplace'
+      preLoaderRoute: typeof AuthenticatedMarketplaceRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/insights': {
+      id: '/_authenticated/insights'
+      path: '/insights'
+      fullPath: '/insights'
+      preLoaderRoute: typeof AuthenticatedInsightsRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/governance': {
+      id: '/_authenticated/governance'
+      path: '/governance'
+      fullPath: '/governance'
+      preLoaderRoute: typeof AuthenticatedGovernanceRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/ai-matching': {
+      id: '/_authenticated/ai-matching'
+      path: '/ai-matching'
+      fullPath: '/ai-matching'
+      preLoaderRoute: typeof AuthenticatedAiMatchingRouteImport
+      parentRoute: typeof AuthenticatedRoute
+    }
+    '/_authenticated/admin': {
+      id: '/_authenticated/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AuthenticatedAdminRouteImport
+      parentRoute: typeof AuthenticatedRoute
     }
   }
 }
 
+interface AuthenticatedRouteChildren {
+  AuthenticatedAdminRoute: typeof AuthenticatedAdminRoute
+  AuthenticatedAiMatchingRoute: typeof AuthenticatedAiMatchingRoute
+  AuthenticatedGovernanceRoute: typeof AuthenticatedGovernanceRoute
+  AuthenticatedInsightsRoute: typeof AuthenticatedInsightsRoute
+  AuthenticatedMarketplaceRoute: typeof AuthenticatedMarketplaceRoute
+  AuthenticatedProjectsRoute: typeof AuthenticatedProjectsRoute
+  AuthenticatedSkillsRoute: typeof AuthenticatedSkillsRoute
+  AuthenticatedTalentRoute: typeof AuthenticatedTalentRoute
+  AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
+}
+
+const AuthenticatedRouteChildren: AuthenticatedRouteChildren = {
+  AuthenticatedAdminRoute: AuthenticatedAdminRoute,
+  AuthenticatedAiMatchingRoute: AuthenticatedAiMatchingRoute,
+  AuthenticatedGovernanceRoute: AuthenticatedGovernanceRoute,
+  AuthenticatedInsightsRoute: AuthenticatedInsightsRoute,
+  AuthenticatedMarketplaceRoute: AuthenticatedMarketplaceRoute,
+  AuthenticatedProjectsRoute: AuthenticatedProjectsRoute,
+  AuthenticatedSkillsRoute: AuthenticatedSkillsRoute,
+  AuthenticatedTalentRoute: AuthenticatedTalentRoute,
+  AuthenticatedIndexRoute: AuthenticatedIndexRoute,
+}
+
+const AuthenticatedRouteWithChildren = AuthenticatedRoute._addFileChildren(
+  AuthenticatedRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
-  AdminRoute: AdminRoute,
-  AiMatchingRoute: AiMatchingRoute,
-  GovernanceRoute: GovernanceRoute,
-  InsightsRoute: InsightsRoute,
-  MarketplaceRoute: MarketplaceRoute,
-  ProjectsRoute: ProjectsRoute,
-  SkillsRoute: SkillsRoute,
-  TalentRoute: TalentRoute,
+  AuthenticatedRoute: AuthenticatedRouteWithChildren,
+  LoginRoute: LoginRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

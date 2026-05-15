@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { PageBody, PageHeader } from "@/components/page";
 import { Briefcase, GraduationCap, ArrowRight, Sparkles, MapPin, FileText } from "lucide-react";
 
-export const Route = createFileRoute("/talent")({
+export const Route = createFileRoute("/_authenticated/talent")({
   head: () => ({
     meta: [
       { title: "Talent Workspace · ACCM" },
