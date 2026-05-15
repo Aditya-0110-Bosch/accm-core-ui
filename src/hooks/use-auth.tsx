@@ -79,8 +79,17 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   );
 }
 
+const DEFAULT_AUTH: AuthState = {
+  user: null,
+  session: null,
+  roles: [],
+  loading: true,
+  hasRole: () => false,
+  hasAnyRole: () => false,
+  signOut: async () => {},
+};
+
 export function useAuth() {
   const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error("useAuth must be used within AuthProvider");
-  return ctx;
+  return ctx ?? DEFAULT_AUTH;
 }
