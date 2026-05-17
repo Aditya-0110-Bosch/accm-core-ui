@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite dev",
+    "prebuild": "node -e \"const fs=require('fs');const p='src/routes/_authenticated';if(fs.existsSync(p)){fs.rmSync(p,{recursive:true,force:true});console.log('Removed stale',p)}\"",
     "build": "vite build",
     "start": "node azure-server.js",
     "build:dev": "vite build --mode development",
