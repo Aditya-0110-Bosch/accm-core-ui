@@ -1,5 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
 import { PageBody, PageHeader, Section } from "@/components/page";
+import { api } from "@/lib/api";
 import {
   Sparkles,
   ArrowUpRight,
@@ -21,21 +23,37 @@ export const Route = createFileRoute("/")({
   component: Overview,
 });
 
-const kpis = [
+const fallbackKpis = [
   { label: "Open Demands", value: "128", delta: "+12", icon: Briefcase },
   { label: "Active Talent", value: "2,847", delta: "+96", icon: Users },
   { label: "Avg. Match Score", value: "84%", delta: "+3.1%", icon: Sparkles },
   { label: "Time to Staff", value: "6.2d", delta: "-1.4d", icon: Clock },
 ];
 
-const activity = [
+const fallbackActivity = [
   { who: "Maya Chen", what: "applied to", target: "Senior ML Engineer · DM-2026-000142", time: "2m ago", score: 92 },
   { who: "Copilot", what: "recommended 4 candidates for", target: "Cloud Architect · DM-2026-000139", time: "18m ago" },
   { who: "Workforce Forecast", what: "updated for", target: "Q3 — Data & AI cluster", time: "1h ago" },
   { who: "Aarav R.", what: "approved skill", target: "LangGraph Orchestration", time: "3h ago" },
 ];
 
+const kpiIconByLabel = {
+  "Open Demands": Briefcase,
+  "Active Talent": Users,
+  "Avg. Match Score": Sparkles,
+  "Time to Staff": Clock,
+} as const;
+
 function Overview() {
+  const overviewQuery = useQuery({ queryKey: ["overview"], queryFn: api.getOverview });
+  const kpis = (overviewQuery.data?.kpis || fallbackKpis).map((k, index) => ({
+    ...k,
+    icon:
+      kpiIconByLabel[k.label as keyof typeof kpiIconByLabel] ||
+      fallbackKpis[index % fallbackKpis.length].icon,
+  }));
+  const activity = overviewQuery.data?.activity || fallbackActivity;
+
   return (
     <>
       <div className="relative overflow-hidden border-b border-border">

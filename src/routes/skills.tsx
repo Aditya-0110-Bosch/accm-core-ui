@@ -1,8 +1,10 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { PageBody, PageHeader } from "@/components/page";
 import { ChevronRight, ChevronDown, Sparkles, Users, GitBranch, Plus } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { api } from "@/lib/api";
 
 export const Route = createFileRoute("/skills")({
   head: () => ({
@@ -14,7 +16,7 @@ export const Route = createFileRoute("/skills")({
   component: SkillsExplorer,
 });
 
-const tree = [
+const fallbackTree = [
   {
     name: "Engineering & Cloud",
     count: 412,
@@ -46,6 +48,17 @@ const tree = [
 ];
 
 function SkillsExplorer() {
+  const skillsQuery = useQuery({ queryKey: ["skills"], queryFn: api.getSkills });
+  const tree = skillsQuery.data?.tree || fallbackTree;
+  const primarySkills = skillsQuery.data?.primarySkills || [
+    { n: "AWS Solutions Design", lvl: "Expert", talents: 32 },
+    { n: "Azure Landing Zones", lvl: "Advanced", talents: 24 },
+    { n: "Kubernetes Platform", lvl: "Expert", talents: 41 },
+    { n: "Terraform & IaC", lvl: "Advanced", talents: 56 },
+    { n: "Service Mesh (Istio)", lvl: "Intermediate", talents: 12 },
+    { n: "FinOps for Cloud", lvl: "Emerging", talents: 8 },
+  ];
+
   return (
     <>
       <PageHeader
@@ -85,14 +98,7 @@ function SkillsExplorer() {
           <div>
             <h3 className="text-sm font-semibold mb-3">Primary skills</h3>
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-              {[
-                { n: "AWS Solutions Design", lvl: "Expert", talents: 32 },
-                { n: "Azure Landing Zones", lvl: "Advanced", talents: 24 },
-                { n: "Kubernetes Platform", lvl: "Expert", talents: 41 },
-                { n: "Terraform & IaC", lvl: "Advanced", talents: 56 },
-                { n: "Service Mesh (Istio)", lvl: "Intermediate", talents: 12 },
-                { n: "FinOps for Cloud", lvl: "Emerging", talents: 8 },
-              ].map((s) => (
+              {primarySkills.map((s) => (
                 <div key={s.n} className="rounded-lg border border-border bg-card p-4 hover:border-ring/40 transition">
                   <div className="flex items-start justify-between">
                     <p className="text-sm font-medium">{s.n}</p>
@@ -128,8 +134,7 @@ function SkillsExplorer() {
               <Sparkles className="h-3 w-3" /> AI Insight
             </div>
             <p className="mt-2 text-sm leading-relaxed">
-              Demand for <span className="font-medium">Kubernetes Platform</span> is growing 38%
-              quarter-over-quarter. Consider seeding 12 internal candidates from SRE.
+              {skillsQuery.data?.insight || "Demand for Kubernetes Platform is growing 38% quarter-over-quarter. Consider seeding 12 internal candidates from SRE."}
             </p>
           </div>
           <div>

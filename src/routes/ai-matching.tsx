@@ -1,6 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
 import { PageBody, PageHeader } from "@/components/page";
 import { Sparkles, Brain, Network, TrendingUp, Shield, GitMerge, Layers, Activity, Zap } from "lucide-react";
+import { api } from "@/lib/api";
 
 export const Route = createFileRoute("/ai-matching")({
   head: () => ({
@@ -12,7 +14,7 @@ export const Route = createFileRoute("/ai-matching")({
   component: AIMatching,
 });
 
-const engines = [
+const fallbackEngines = [
   { icon: GitMerge, name: "Matching Engine", desc: "Skill + context + intent ranking", status: "live", calls: "1.2M / day" },
   { icon: Brain, name: "Skill Extraction", desc: "From CVs, JDs, projects, signals", status: "live", calls: "84K / day" },
   { icon: Network, name: "Competency Graph", desc: "Adjacency + relationship inference", status: "live", calls: "Continuous" },
@@ -21,14 +23,32 @@ const engines = [
   { icon: Shield, name: "Risk & Resilience", desc: "Concentration, attrition, scarcity", status: "live", calls: "Hourly" },
 ];
 
-const candidates = [
+const fallbackCandidates = [
   { name: "Maya Chen", role: "Senior ML Engineer", match: 94, gaps: 1, badges: ["LLM Eval", "PyTorch"] },
   { name: "Rohan Patel", role: "ML Engineer II", match: 89, gaps: 2, badges: ["PyTorch", "Vector DB"] },
   { name: "Lin Wang", role: "Applied Scientist", match: 86, gaps: 2, badges: ["RAG", "Eval"] },
   { name: "Sara Okafor", role: "Data Scientist", match: 81, gaps: 3, badges: ["Python", "MLOps"] },
 ];
 
+const engineIconByName = {
+  "Matching Engine": GitMerge,
+  "Skill Extraction": Brain,
+  "Competency Graph": Network,
+  "Workforce Forecast": TrendingUp,
+  "Pyramid Mix": Layers,
+  "Risk & Resilience": Shield,
+} as const;
+
 function AIMatching() {
+  const aiQuery = useQuery({ queryKey: ["ai-matching"], queryFn: () => api.getAIMatching("DM-2026-000145") });
+  const engines = (aiQuery.data?.engines || fallbackEngines).map((engine, index) => ({
+    ...engine,
+    icon:
+      engineIconByName[engine.name as keyof typeof engineIconByName] ||
+      fallbackEngines[index % fallbackEngines.length].icon,
+  }));
+  const candidates = aiQuery.data?.candidates || fallbackCandidates;
+
   return (
     <>
       <PageHeader

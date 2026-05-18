@@ -1,5 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { PageBody, PageHeader } from "@/components/page";
 import {
   Plus,
@@ -16,6 +17,7 @@ import {
   Layers,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { api } from "@/lib/api";
 
 export const Route = createFileRoute("/projects")({
   head: () => ({
@@ -127,11 +129,20 @@ const statusTone: Record<ProjectStatus, string> = {
 
 function ProjectsWorkspace() {
   const [filter, setFilter] = useState<"All" | "At Risk" | "Mine" | "Closing">("All");
+  const projectsQuery = useQuery({
+    queryKey: ["projects", filter],
+    queryFn: () => api.getProjects(filter),
+  });
+
   const projects = useMemo(() => {
-    if (filter === "At Risk") return seedProjects.filter((p) => p.status === "At Risk");
-    if (filter === "Closing") return seedProjects.filter((p) => p.status === "Closing");
-    return seedProjects;
-  }, [filter]);
+    const base = projectsQuery.data?.projects || seedProjects;
+    if (filter === "Mine") {
+      return base.filter((p) => p.pm.toLowerCase().includes("aarav"));
+    }
+    if (filter === "At Risk") return base.filter((p) => p.status === "At Risk");
+    if (filter === "Closing") return base.filter((p) => p.status === "Closing");
+    return base;
+  }, [filter, projectsQuery.data]);
 
   return (
     <>
