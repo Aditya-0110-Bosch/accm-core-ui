@@ -46,13 +46,16 @@ const kpiIconByLabel = {
 
 function Overview() {
   const overviewQuery = useQuery({ queryKey: ["overview"], queryFn: api.getOverview });
-  const kpis = (overviewQuery.data?.kpis || fallbackKpis).map((k, index) => ({
+  const kpisFromApi = overviewQuery.data?.kpis;
+  const kpis = (kpisFromApi && kpisFromApi.length > 0 ? kpisFromApi : fallbackKpis).map((k, index) => ({
     ...k,
     icon:
       kpiIconByLabel[k.label as keyof typeof kpiIconByLabel] ||
       fallbackKpis[index % fallbackKpis.length].icon,
   }));
-  const activity = overviewQuery.data?.activity || fallbackActivity;
+  const activityFromApi = overviewQuery.data?.activity;
+  const activity =
+    activityFromApi && activityFromApi.length > 0 ? activityFromApi : fallbackActivity;
 
   return (
     <>

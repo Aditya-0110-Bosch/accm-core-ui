@@ -11,6 +11,7 @@ import {
 import appCss from "../styles.css?url";
 import { AppShell } from "@/components/app-shell";
 import { AICopilot } from "@/components/ai-copilot";
+import { CopilotProvider } from "@/components/copilot-provider";
 
 function NotFoundComponent() {
   return (
@@ -114,10 +115,12 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <AppShell>
-        <Outlet />
-      </AppShell>
-      <AICopilot />
+      <CopilotProvider>
+        <AppShell>
+          <Outlet />
+        </AppShell>
+        <AICopilot />
+      </CopilotProvider>
     </QueryClientProvider>
   );
 }

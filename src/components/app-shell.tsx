@@ -15,6 +15,8 @@ import {
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { CocaColaMark, CocaColaBadge } from "@/components/coca-cola-mark";
+import { useCopilot } from "@/components/copilot-provider";
+import { useState } from "react";
 
 const nav = [
   { to: "/", label: "Overview", icon: LayoutGrid },
@@ -94,6 +96,9 @@ export function AppShell({ children }: { children: React.ReactNode }) {
 }
 
 function Topbar() {
+  const [query, setQuery] = useState("");
+  const { openWithPrompt, setOpen } = useCopilot();
+
   return (
     <header className="sticky top-0 z-30 h-14 border-b border-border bg-background/80 backdrop-blur-md flex items-center gap-3 px-6">
       <div className="hidden lg:flex items-center gap-2 pr-3 mr-1 border-r border-border h-8">
@@ -102,6 +107,16 @@ function Topbar() {
       <div className="relative flex-1 max-w-xl">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" strokeWidth={1.75} />
         <input
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          onFocus={() => setOpen(true)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && query.trim()) {
+              e.preventDefault();
+              void openWithPrompt(query);
+              setQuery("");
+            }
+          }}
           placeholder="Ask anything · find skills, people, demands…"
           className="w-full h-9 pl-9 pr-16 rounded-md bg-muted text-sm placeholder:text-muted-foreground border border-transparent focus:outline-none focus:bg-surface-elevated focus:border-border focus:ring-2 focus:ring-ring/20 transition"
         />
@@ -110,7 +125,10 @@ function Topbar() {
         </kbd>
       </div>
       <div className="flex items-center gap-1.5">
-        <button className="h-9 px-3 inline-flex items-center gap-1.5 text-sm font-medium rounded-md bg-gradient-brand text-brand-foreground shadow-sm hover:opacity-95 transition">
+        <button
+          onClick={() => void openWithPrompt("Create demand; role: Senior ML Engineer; cluster: Data, AI & ML; skills: PyTorch, LLM Eval, Vector DB; loc: Bengaluru - Hybrid; duration: 9 months; priority: Critical")}
+          className="h-9 px-3 inline-flex items-center gap-1.5 text-sm font-medium rounded-md bg-gradient-brand text-brand-foreground shadow-sm hover:opacity-95 transition"
+        >
           <Plus className="h-4 w-4" strokeWidth={2} />
           New Demand
         </button>

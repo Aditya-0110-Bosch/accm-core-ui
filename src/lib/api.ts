@@ -103,7 +103,8 @@ export type CopilotResponse = { reply: string; model: string };
 export const api = {
   getOverview: () => request<OverviewResponse>("/api/overview"),
   getProjects: (filter = "All") => request<{ projects: Project[] }>(`/api/projects?filter=${encodeURIComponent(filter)}`),
-  getMarketplace: () => request<{ demands: Demand[] }>("/api/marketplace"),
+  getMarketplace: () => request<{ total?: number; demands: Demand[] }>("/api/marketplace"),
+  getDemandCount: () => request<{ total: number }>("/api/demands/count"),
   createDemand: (payload: Omit<Demand, "id" | "applicants" | "match" | "status" | "isNew">) =>
     request<Demand>("/api/marketplace", { method: "POST", bodyJson: payload }),
   getSkills: () => request<SkillsResponse>("/api/skills"),
