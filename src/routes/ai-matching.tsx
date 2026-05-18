@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { PageBody, PageHeader } from "@/components/page";
 import { Sparkles, Brain, Network, TrendingUp, Shield, GitMerge, Layers, Activity, Zap } from "lucide-react";
-import { api } from "@/lib/api";
+import { api, type AIMatchingResponse } from "@/lib/api";
 
 export const Route = createFileRoute("/ai-matching")({
   head: () => ({
@@ -23,11 +23,11 @@ const fallbackEngines = [
   { icon: Shield, name: "Risk & Resilience", desc: "Concentration, attrition, scarcity", status: "live", calls: "Hourly" },
 ];
 
-const fallbackCandidates = [
-  { name: "Maya Chen", role: "Senior ML Engineer", match: 94, gaps: 1, badges: ["LLM Eval", "PyTorch"] },
-  { name: "Rohan Patel", role: "ML Engineer II", match: 89, gaps: 2, badges: ["PyTorch", "Vector DB"] },
-  { name: "Lin Wang", role: "Applied Scientist", match: 86, gaps: 2, badges: ["RAG", "Eval"] },
-  { name: "Sara Okafor", role: "Data Scientist", match: 81, gaps: 3, badges: ["Python", "MLOps"] },
+const fallbackCandidates: AIMatchingResponse["candidates"] = [
+  { name: "Maya Chen", role: "Senior ML Engineer", match: 94, gaps: 1, badges: ["LLM Eval", "PyTorch"], capacityAvailable: 2 },
+  { name: "Rohan Patel", role: "ML Engineer II", match: 89, gaps: 2, badges: ["PyTorch", "Vector DB"], capacityAvailable: 1 },
+  { name: "Lin Wang", role: "Applied Scientist", match: 86, gaps: 2, badges: ["RAG", "Eval"], capacityAvailable: 2 },
+  { name: "Sara Okafor", role: "Data Scientist", match: 81, gaps: 3, badges: ["Python", "MLOps"], capacityAvailable: 3 },
 ];
 
 const engineIconByName = {
@@ -137,7 +137,9 @@ function AIMatching() {
                     <span key={b} className="text-[11px] px-2 py-0.5 rounded bg-muted text-muted-foreground">{b}</span>
                   ))}
                 </div>
-                <div className="text-xs text-muted-foreground hidden sm:block">{c.gaps} gaps</div>
+                <div className="text-xs text-muted-foreground hidden sm:block">
+                  {c.capacityAvailable !== undefined ? `${c.capacityAvailable} slots free` : `${c.gaps} gaps`}
+                </div>
                 <div className="w-32">
                   <div className="flex justify-between text-[11px] mb-1">
                     <span className="text-muted-foreground">Match</span>

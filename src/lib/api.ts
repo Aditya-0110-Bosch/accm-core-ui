@@ -47,6 +47,17 @@ export type Project = {
   pm: string;
 };
 
+export type DemandAllocation = {
+  talent_id: number;
+  name: string;
+  role: string;
+  match: number;
+  utilization?: number;
+  capacity_available?: number;
+  location?: string;
+  skills?: string[];
+};
+
 export type Demand = {
   id: string;
   role: string;
@@ -59,6 +70,8 @@ export type Demand = {
   match: number;
   status: string;
   isNew?: boolean;
+  allocations?: DemandAllocation[];
+  allocationMessage?: string;
 };
 
 export type SkillsResponse = {
@@ -75,8 +88,25 @@ export type TalentResponse = {
 };
 
 export type AIMatchingResponse = {
+  demandId?: string;
   engines: Array<{ name: string; desc: string; status: string; calls: string }>;
-  candidates: Array<{ name: string; role: string; match: number; gaps: number; badges: string[] }>;
+  candidates: Array<{
+    name: string;
+    role: string;
+    match: number;
+    gaps: number;
+    badges: string[];
+    utilization?: number;
+    capacityAvailable?: number;
+  }>;
+};
+
+export type AllocateResponse = {
+  demand_id: string;
+  allocated: DemandAllocation[];
+  match?: number;
+  status?: string;
+  message: string;
 };
 
 export type InsightsResponse = {
@@ -100,13 +130,50 @@ export type AdminResponse = {
 
 export type CopilotResponse = { reply: string; model: string };
 
+export type CandidatePreview = {
+  talent_id: number;
+  name: string;
+  role: string;
+  location: string;
+  match: number;
+  utilization: number;
+  capacity_available: number;
+  skills: string[];
+};
+
+export type CandidatesResponse = {
+  demand_id: string;
+  candidates: CandidatePreview[];
+};
+
+export type ConfirmAllocationResponse = {
+  demand_id: string;
+  allocated: DemandAllocation[];
+  message: string;
+};
+
 export const api = {
   getOverview: () => request<OverviewResponse>("/api/overview"),
   getProjects: (filter = "All") => request<{ projects: Project[] }>(`/api/projects?filter=${encodeURIComponent(filter)}`),
   getMarketplace: () => request<{ total?: number; demands: Demand[] }>("/api/marketplace"),
   getDemandCount: () => request<{ total: number }>("/api/demands/count"),
-  createDemand: (payload: Omit<Demand, "id" | "applicants" | "match" | "status" | "isNew">) =>
-    request<Demand>("/api/marketplace", { method: "POST", bodyJson: payload }),
+  createDemand: (
+    payload: Omit<Demand, "id" | "applicants" | "match" | "status" | "isNew" | "allocations" | "allocationMessage"> & {
+      count?: number;
+    }
+  ) => request<Demand>("/api/marketplace", { method: "POST", bodyJson: payload }),
+  allocateDemand: (demandId: string, count?: number) =>
+    request<AllocateResponse>(`/api/demands/${encodeURIComponent(demandId)}/allocate`, {
+      method: "POST",
+      bodyJson: { count },
+    }),
+  getCandidates: (demandId: string) =>
+    request<CandidatesResponse>(`/api/demands/${encodeURIComponent(demandId)}/candidates`),
+  confirmAllocation: (demandId: string, talentIds: number[]) =>
+    request<ConfirmAllocationResponse>(`/api/demands/${encodeURIComponent(demandId)}/confirm-allocation`, {
+      method: "POST",
+      bodyJson: { talent_ids: talentIds },
+    }),
   getSkills: () => request<SkillsResponse>("/api/skills"),
   getTalent: () => request<TalentResponse>("/api/talent"),
   getAIMatching: (demandId = "DM-2026-000145") =>

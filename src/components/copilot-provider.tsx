@@ -1,5 +1,5 @@
 import { createContext, useContext, useMemo, useState } from "react";
-import { api } from "@/lib/api";
+import { api, type CandidatePreview } from "@/lib/api";
 
 type ChatRole = "user" | "assistant";
 
@@ -8,13 +8,22 @@ type ChatMessage = {
   content: string;
 };
 
+type PendingAllocation = {
+  demandId: string;
+  candidates: CandidatePreview[];
+};
+
 type CopilotContextValue = {
   open: boolean;
   sending: boolean;
   messages: ChatMessage[];
+  pendingAllocation: PendingAllocation | null;
   setOpen: (open: boolean) => void;
   sendMessage: (text: string) => Promise<void>;
   openWithPrompt: (text: string) => Promise<void>;
+  approveCandidate: (talentId: number) => Promise<void>;
+  approveAll: () => Promise<void>;
+  rejectAllocation: () => void;
 };
 
 const CopilotContext = createContext<CopilotContextValue | null>(null);
@@ -25,6 +34,42 @@ const DEFAULT_MESSAGE =
 function extractField(input: string, key: string): string {
   const regex = new RegExp(`(?:${key})\\s*:\\s*([^;\\n]+)`, "i");
   return input.match(regex)?.[1]?.trim() || "";
+}
+
+function formatAllocationReply(created: {
+  id: string;
+  role: string;
+  loc: string;
+  priority: string;
+  allocations?: Array<{
+    name: string;
+    role: string;
+    match: number;
+    utilization?: number;
+    capacity_available?: number;
+  }>;
+  allocationMessage?: string;
+}) {
+  const lines = [
+    `Demand ${created.id} created for ${created.role} in ${created.loc} (${created.priority} priority).`,
+  ];
+
+  if (created.allocations && created.allocations.length > 0) {
+    lines.push("", "AI allocation complete — matched by skills and available capacity:");
+    for (const person of created.allocations) {
+      const capacity =
+        person.capacity_available !== undefined
+          ? `${person.capacity_available} slot(s) free`
+          : person.utilization !== undefined
+            ? `${100 - person.utilization}% capacity free`
+            : "capacity available";
+      lines.push(`- ${person.name} (${person.role}) · ${person.match}% match · ${capacity}`);
+    }
+  } else if (created.allocationMessage) {
+    lines.push("", created.allocationMessage);
+  }
+
+  return lines.join("\n");
 }
 
 function parseCreateDemand(text: string) {
@@ -66,6 +111,57 @@ export function CopilotProvider({ children }: { children: React.ReactNode }) {
   const [messages, setMessages] = useState<ChatMessage[]>([
     { role: "assistant", content: DEFAULT_MESSAGE },
   ]);
+  const [pendingAllocation, setPendingAllocation] = useState<PendingAllocation | null>(null);
+
+  const approveCandidate = async (talentId: number) => {
+    if (!pendingAllocation) return;
+    setSending(true);
+    try {
+      const result = await api.confirmAllocation(pendingAllocation.demandId, [talentId]);
+      const name = result.allocated[0]?.name || "Candidate";
+      setMessages((prev) => [
+        ...prev,
+        { role: "assistant", content: `${name} has been allocated to ${pendingAllocation.demandId}.` },
+      ]);
+      setPendingAllocation(null);
+    } catch (error) {
+      setMessages((prev) => [
+        ...prev,
+        { role: "assistant", content: error instanceof Error ? error.message : "Allocation failed." },
+      ]);
+    } finally {
+      setSending(false);
+    }
+  };
+
+  const approveAll = async () => {
+    if (!pendingAllocation) return;
+    setSending(true);
+    try {
+      const allIds = pendingAllocation.candidates.map((c) => c.talent_id);
+      const result = await api.confirmAllocation(pendingAllocation.demandId, allIds);
+      setMessages((prev) => [
+        ...prev,
+        { role: "assistant", content: result.message },
+      ]);
+      setPendingAllocation(null);
+    } catch (error) {
+      setMessages((prev) => [
+        ...prev,
+        { role: "assistant", content: error instanceof Error ? error.message : "Allocation failed." },
+      ]);
+    } finally {
+      setSending(false);
+    }
+  };
+
+  const rejectAllocation = () => {
+    setPendingAllocation(null);
+    setMessages((prev) => [
+      ...prev,
+      { role: "assistant", content: "Allocation cancelled. No candidates were assigned." },
+    ]);
+  };
 
   const sendMessage = async (text: string) => {
     const content = text.trim();
@@ -110,9 +206,31 @@ export function CopilotProvider({ children }: { children: React.ReactNode }) {
           ...prev,
           {
             role: "assistant",
-            content: `Done. Demand ${created.id} created for ${created.role} in ${created.loc} with priority ${created.priority}.`,
+            content: formatAllocationReply(created),
           },
         ]);
+        return;
+      }
+
+      const allocateMatch = content.match(/allocate\s+(?:demand\s+)?(DM-\d{4}-\d{6})/i);
+      if (allocateMatch) {
+        const demandId = allocateMatch[1].toUpperCase();
+        const result = await api.getCandidates(demandId);
+        if (result.candidates.length === 0) {
+          setMessages((prev) => [
+            ...prev,
+            { role: "assistant", content: `No available candidates found for ${demandId}.` },
+          ]);
+        } else {
+          setPendingAllocation({ demandId, candidates: result.candidates });
+          setMessages((prev) => [
+            ...prev,
+            {
+              role: "assistant",
+              content: `Found ${result.candidates.length} candidate(s) for ${demandId}. Please review and approve below.`,
+            },
+          ]);
+        }
         return;
       }
 
@@ -138,8 +256,8 @@ export function CopilotProvider({ children }: { children: React.ReactNode }) {
   };
 
   const value = useMemo(
-    () => ({ open, sending, messages, setOpen, sendMessage, openWithPrompt }),
-    [open, sending, messages]
+    () => ({ open, sending, messages, pendingAllocation, setOpen, sendMessage, openWithPrompt, approveCandidate, approveAll, rejectAllocation }),
+    [open, sending, messages, pendingAllocation]
   );
 
   return <CopilotContext.Provider value={value}>{children}</CopilotContext.Provider>;

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Sparkles, X, Send, ArrowUpRight, Loader2 } from "lucide-react";
+import { Sparkles, X, Send, ArrowUpRight, Loader2, Check, XCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useCopilot } from "@/components/copilot-provider";
 import { CopilotMessageContent } from "@/lib/copilot-message-format";
@@ -11,7 +11,7 @@ const suggestions = [
 ];
 
 export function AICopilot() {
-  const { open, setOpen, sending, messages, sendMessage } = useCopilot();
+  const { open, setOpen, sending, messages, sendMessage, pendingAllocation, approveCandidate, approveAll, rejectAllocation } = useCopilot();
   const [input, setInput] = useState("");
   const [isFullScreen, setIsFullScreen] = useState(false);
   const [showSuggestions, setShowSuggestions] = useState(true);
@@ -139,6 +139,52 @@ export function AICopilot() {
                     />
                   </button>
                 ))}
+              </div>
+            )}
+
+            {pendingAllocation && (
+              <div className="space-y-2 border border-border rounded-xl p-3 bg-card">
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                  Available Candidates for {pendingAllocation.demandId}
+                </p>
+                {pendingAllocation.candidates.map((c) => (
+                  <div
+                    key={c.talent_id}
+                    className="flex items-center justify-between gap-2 rounded-lg border border-border p-2.5 bg-muted/30"
+                  >
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-medium truncate">{c.name}</p>
+                      <p className="text-xs text-muted-foreground">{c.role} · {c.location}</p>
+                      <p className="text-xs text-muted-foreground">
+                        {c.match}% match · {c.capacity_available} slot(s) free
+                      </p>
+                    </div>
+                    <button
+                      onClick={() => void approveCandidate(c.talent_id)}
+                      disabled={sending}
+                      className="shrink-0 h-7 w-7 grid place-items-center rounded-md bg-green-600 text-white hover:bg-green-700 disabled:opacity-50"
+                      title="Approve"
+                    >
+                      <Check className="h-3.5 w-3.5" strokeWidth={2} />
+                    </button>
+                  </div>
+                ))}
+                <div className="flex gap-2 pt-1">
+                  <button
+                    onClick={() => void approveAll()}
+                    disabled={sending}
+                    className="flex-1 text-xs font-medium py-1.5 rounded-md bg-green-600 text-white hover:bg-green-700 disabled:opacity-50"
+                  >
+                    Approve All
+                  </button>
+                  <button
+                    onClick={rejectAllocation}
+                    disabled={sending}
+                    className="flex-1 text-xs font-medium py-1.5 rounded-md border border-border hover:bg-destructive/10 text-destructive disabled:opacity-50"
+                  >
+                    Cancel
+                  </button>
+                </div>
               </div>
             )}
           </div>

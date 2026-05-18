@@ -2,7 +2,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { PageBody, PageHeader } from "@/components/page";
-import { MapPin, Clock, Users, Sparkles, ArrowRight, Filter, Plus, CheckCircle2 } from "lucide-react";
+import { MapPin, Clock, Users, Sparkles, ArrowRight, Filter, Plus, CheckCircle2, UserCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { DemandWizard, nextDemandId, type Demand } from "@/components/demand-wizard";
 import { api } from "@/lib/api";
@@ -51,8 +51,10 @@ function Marketplace() {
     loc: string;
     duration: string;
     priority: Demand["priority"];
+    count: number;
   }) => {
     await createDemand.mutateAsync(payload);
+    void queryClient.invalidateQueries({ queryKey: ["overview"] });
   };
 
   if (marketplaceQuery.isLoading) {
@@ -202,12 +204,36 @@ function Marketplace() {
                   ))}
                 </div>
 
-                <div className="mt-4 pt-4 border-t border-border flex items-center justify-between text-xs text-muted-foreground">
-                  <div className="flex items-center gap-3">
-                    <span className="inline-flex items-center gap-1"><MapPin className="h-3 w-3" />{d.loc}</span>
-                    <span className="inline-flex items-center gap-1"><Clock className="h-3 w-3" />{d.duration}</span>
+                <div className="mt-4 pt-4 border-t border-border space-y-3">
+                  <div className="flex items-center justify-between text-xs text-muted-foreground">
+                    <div className="flex items-center gap-3">
+                      <span className="inline-flex items-center gap-1"><MapPin className="h-3 w-3" />{d.loc}</span>
+                      <span className="inline-flex items-center gap-1"><Clock className="h-3 w-3" />{d.duration}</span>
+                    </div>
+                    <span className="inline-flex items-center gap-1"><Users className="h-3 w-3" />{d.applicants} allocated</span>
                   </div>
-                  <span className="inline-flex items-center gap-1"><Users className="h-3 w-3" />{d.applicants} applicants</span>
+
+                  {d.allocations && d.allocations.length > 0 && (
+                    <div className="rounded-lg bg-muted/50 p-2.5 space-y-1.5">
+                      <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+                        <UserCheck className="h-3 w-3" /> AI allocated
+                      </p>
+                      {d.allocations.map((a) => (
+                        <div key={a.talent_id} className="flex items-center justify-between gap-2 text-xs">
+                          <div className="min-w-0">
+                            <span className="font-medium">{a.name}</span>
+                            <span className="text-muted-foreground"> · {a.role}</span>
+                          </div>
+                          <div className="shrink-0 flex items-center gap-2 text-muted-foreground">
+                            {a.utilization !== undefined && (
+                              <span>{100 - a.utilization}% free</span>
+                            )}
+                            <span className="font-semibold text-brand">{a.match}%</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             ))}

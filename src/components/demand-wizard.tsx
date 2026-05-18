@@ -14,6 +14,15 @@ export type Demand = {
   match: number;
   status: string;
   isNew?: boolean;
+  allocations?: Array<{
+    talent_id: number;
+    name: string;
+    role: string;
+    match: number;
+    utilization?: number;
+    capacity_available?: number;
+  }>;
+  allocationMessage?: string;
 };
 
 const CLUSTERS = [
@@ -58,6 +67,7 @@ export function DemandWizard({
     loc: string;
     duration: string;
     priority: Demand["priority"];
+    count: number;
   }) => void | Promise<void>;
   nextId: string;
 }) {
@@ -107,6 +117,7 @@ export function DemandWizard({
         loc: loc.trim(),
         duration,
         priority,
+        count,
       });
       reset();
       onClose();
