@@ -1,7 +1,5 @@
-import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
+﻿import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
-import { supabase } from "@/integrations/supabase/client";
-import { lovable } from "@/integrations/lovable/index";
 import { useAuth } from "@/hooks/use-auth";
 import { CocaColaMark } from "@/components/coca-cola-mark";
 import { Sparkles, Mail, Lock, ArrowRight } from "lucide-react";
@@ -20,14 +18,12 @@ export const Route = createFileRoute("/login")({
 });
 
 function LoginPage() {
-  const { user, loading } = useAuth();
+  const { user, loading, signIn } = useAuth();
   const navigate = useNavigate();
   const search = Route.useSearch();
 
-  const [mode, setMode] = useState<"signin" | "signup">("signin");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [fullName, setFullName] = useState("");
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -41,38 +37,12 @@ function LoginPage() {
     e.preventDefault();
     setError(null);
     setBusy(true);
-    try {
-      if (mode === "signup") {
-        const { error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            emailRedirectTo: window.location.origin,
-            data: { full_name: fullName || email.split("@")[0] },
-          },
-        });
-        if (error) throw error;
-      } else {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) throw error;
-      }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : "Authentication failed");
-    } finally {
+    const { error: err } = await signIn(email, password);
+    if (err) {
+      setError(err);
       setBusy(false);
     }
-  };
-
-  const handleGoogle = async () => {
-    setError(null);
-    setBusy(true);
-    const result = await lovable.auth.signInWithOAuth("google", {
-      redirect_uri: window.location.origin,
-    });
-    if (result.error) {
-      setError(result.error instanceof Error ? result.error.message : "Google sign-in failed");
-      setBusy(false);
-    }
+    // On success the useEffect above navigates automatically
   };
 
   return (
@@ -107,7 +77,7 @@ function LoginPage() {
         </div>
 
         <div className="relative text-[11px] text-muted-foreground">
-          © {new Date().getFullYear()} ACCM · Active Competency Cluster Model
+          {String.fromCharCode(169)} {new Date().getFullYear()} ACCM · Active Competency Cluster Model
         </div>
       </div>
 
@@ -121,44 +91,16 @@ function LoginPage() {
             <span className="text-sm font-semibold tracking-tight">ACCM</span>
           </div>
 
-          <h2 className="text-display text-2xl">
-            {mode === "signin" ? "Welcome back" : "Create your account"}
-          </h2>
+          <h2 className="text-display text-2xl">Welcome back</h2>
           <p className="mt-1.5 text-sm text-muted-foreground">
-            {mode === "signin"
-              ? "Sign in to continue to your workspace."
-              : "New here? You'll be added as an Associate by default."}
+            Sign in with your ACCM credentials to continue.
           </p>
 
-          <button
-            type="button"
-            onClick={handleGoogle}
-            disabled={busy}
-            className="mt-6 w-full h-10 rounded-md border border-border bg-surface-elevated hover:bg-muted transition flex items-center justify-center gap-2 text-sm font-medium disabled:opacity-50"
-          >
-            <GoogleIcon /> Continue with Google
-          </button>
-
-          <div className="my-5 flex items-center gap-3 text-[11px] uppercase tracking-wider text-muted-foreground">
-            <div className="h-px flex-1 bg-border" />
-            or email
-            <div className="h-px flex-1 bg-border" />
-          </div>
-
-          <form onSubmit={handleSubmit} className="space-y-3">
-            {mode === "signup" && (
-              <Field
-                icon={<UserIcon />}
-                type="text"
-                placeholder="Full name"
-                value={fullName}
-                onChange={setFullName}
-              />
-            )}
+          <form onSubmit={handleSubmit} className="mt-6 space-y-3">
             <Field
               icon={<Mail className="h-4 w-4" />}
               type="email"
-              placeholder="you@company.com"
+              placeholder="you@accm.demo"
               value={email}
               onChange={setEmail}
               required
@@ -170,7 +112,6 @@ function LoginPage() {
               value={password}
               onChange={setPassword}
               required
-              minLength={6}
             />
 
             {error && (
@@ -184,28 +125,19 @@ function LoginPage() {
               disabled={busy}
               className="w-full h-10 rounded-md bg-gradient-brand text-brand-foreground text-sm font-medium shadow-sm hover:opacity-95 transition flex items-center justify-center gap-1.5 disabled:opacity-50"
             >
-              {busy ? "Please wait…" : mode === "signin" ? "Sign in" : "Create account"}
+              {busy ? "Signing in..." : "Sign in"}
               {!busy && <ArrowRight className="h-4 w-4" />}
             </button>
           </form>
 
-          <p className="mt-5 text-center text-xs text-muted-foreground">
-            {mode === "signin" ? "Don't have an account?" : "Already have an account?"}{" "}
-            <button
-              type="button"
-              onClick={() => {
-                setMode(mode === "signin" ? "signup" : "signin");
-                setError(null);
-              }}
-              className="font-medium text-brand hover:underline"
-            >
-              {mode === "signin" ? "Create one" : "Sign in"}
-            </button>
-          </p>
-
-          <p className="mt-6 text-center text-[11px] text-muted-foreground">
-            <Link to="/" className="hover:underline">← Back to home</Link>
-          </p>
+          <div className="mt-6 rounded-lg border border-border bg-muted/50 p-3 text-[11px] text-muted-foreground space-y-1">
+            <p className="font-medium text-foreground">Demo credentials</p>
+            <p>admin@accm.demo · Demo@1234 (all roles)</p>
+            <p>pmo@accm.demo · Demo@1234</p>
+            <p>manager@accm.demo · Demo@1234</p>
+            <p>rm@accm.demo · Demo@1234</p>
+            <p>associate@accm.demo · Demo@1234</p>
+          </div>
         </div>
       </div>
     </div>
@@ -219,7 +151,6 @@ function Field({
   value,
   onChange,
   required,
-  minLength,
 }: {
   icon: React.ReactNode;
   type: string;
@@ -227,7 +158,6 @@ function Field({
   value: string;
   onChange: (v: string) => void;
   required?: boolean;
-  minLength?: number;
 }) {
   return (
     <label className="relative block">
@@ -238,26 +168,8 @@ function Field({
         value={value}
         onChange={(e) => onChange(e.target.value)}
         required={required}
-        minLength={minLength}
         className="w-full h-10 pl-9 pr-3 rounded-md bg-muted text-sm placeholder:text-muted-foreground border border-transparent focus:outline-none focus:bg-surface-elevated focus:border-border focus:ring-2 focus:ring-ring/20 transition"
       />
     </label>
-  );
-}
-
-function GoogleIcon() {
-  return (
-    <svg className="h-4 w-4" viewBox="0 0 24 24" aria-hidden>
-      <path fill="#EA4335" d="M12 10.2v3.96h5.52c-.24 1.44-1.68 4.2-5.52 4.2-3.36 0-6.12-2.76-6.12-6.36S8.64 5.64 12 5.64c1.92 0 3.18.84 3.9 1.5l2.64-2.52C16.86 3.06 14.64 2.04 12 2.04 6.6 2.04 2.28 6.36 2.28 12s4.32 9.96 9.72 9.96c5.6 0 9.36-3.96 9.36-9.54 0-.66-.06-1.14-.18-1.62H12z" />
-    </svg>
-  );
-}
-
-function UserIcon() {
-  return (
-    <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" aria-hidden>
-      <circle cx="12" cy="8" r="3.5" />
-      <path d="M5 20c1-3.5 4-5.5 7-5.5s6 2 7 5.5" strokeLinecap="round" />
-    </svg>
   );
 }

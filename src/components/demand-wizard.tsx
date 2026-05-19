@@ -14,6 +14,15 @@ export type Demand = {
   match: number;
   status: string;
   isNew?: boolean;
+  allocations?: Array<{
+    talent_id: number;
+    name: string;
+    role: string;
+    match: number;
+    utilization?: number;
+    capacity_available?: number;
+  }>;
+  allocationMessage?: string;
 };
 
 const CLUSTERS = [
@@ -51,7 +60,15 @@ export function DemandWizard({
 }: {
   open: boolean;
   onClose: () => void;
-  onCreate: (d: Demand) => void;
+  onCreate: (d: {
+    role: string;
+    cluster: string;
+    skills: string[];
+    loc: string;
+    duration: string;
+    priority: Demand["priority"];
+    count: number;
+  }) => void | Promise<void>;
   nextId: string;
 }) {
   const [step, setStep] = useState(1);
@@ -65,6 +82,7 @@ export function DemandWizard({
   const [duration, setDuration] = useState("6 months");
   const [priority, setPriority] = useState<Demand["priority"]>("High");
   const [count, setCount] = useState(1);
+  const [submitting, setSubmitting] = useState(false);
 
   if (!open) return null;
 
@@ -89,22 +107,23 @@ export function DemandWizard({
     setSkillInput("");
   };
 
-  const submit = () => {
-    onCreate({
-      id: nextId,
-      role: role.trim(),
-      cluster,
-      skills,
-      loc: loc.trim(),
-      duration,
-      priority,
-      applicants: 0,
-      match: 0,
-      status: "Draft",
-      isNew: true,
-    });
-    reset();
-    onClose();
+  const submit = async () => {
+    try {
+      setSubmitting(true);
+      await onCreate({
+        role: role.trim(),
+        cluster,
+        skills,
+        loc: loc.trim(),
+        duration,
+        priority,
+        count,
+      });
+      reset();
+      onClose();
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   return (
@@ -346,7 +365,7 @@ export function DemandWizard({
             {step < 4 ? (
               <button
                 type="button"
-                disabled={!canNext}
+                disabled={!canNext || submitting}
                 onClick={() => setStep(step + 1)}
                 className="h-9 px-4 inline-flex items-center gap-1.5 rounded-md bg-foreground text-background text-sm font-medium disabled:opacity-40 transition"
               >
@@ -355,10 +374,11 @@ export function DemandWizard({
             ) : (
               <button
                 type="button"
+                disabled={submitting}
                 onClick={submit}
-                className="h-9 px-4 inline-flex items-center gap-1.5 rounded-md bg-gradient-brand text-brand-foreground text-sm font-medium shadow-glow"
+                className="h-9 px-4 inline-flex items-center gap-1.5 rounded-md bg-gradient-brand text-brand-foreground text-sm font-medium shadow-glow disabled:opacity-60"
               >
-                <Sparkles className="h-4 w-4" /> Publish demand
+                <Sparkles className="h-4 w-4" /> {submitting ? "Publishing..." : "Publish demand"}
               </button>
             )}
           </div>

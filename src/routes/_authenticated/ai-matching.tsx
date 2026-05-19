@@ -1,6 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
 import { PageBody, PageHeader } from "@/components/page";
 import { Sparkles, Brain, Network, TrendingUp, Shield, GitMerge, Layers, Activity, Zap } from "lucide-react";
+import { api, type AIMatchingResponse } from "@/lib/api";
 
 export const Route = createFileRoute("/_authenticated/ai-matching")({
   head: () => ({
@@ -12,7 +14,7 @@ export const Route = createFileRoute("/_authenticated/ai-matching")({
   component: AIMatching,
 });
 
-const engines = [
+const fallbackEngines = [
   { icon: GitMerge, name: "Matching Engine", desc: "Skill + context + intent ranking", status: "live", calls: "1.2M / day" },
   { icon: Brain, name: "Skill Extraction", desc: "From CVs, JDs, projects, signals", status: "live", calls: "84K / day" },
   { icon: Network, name: "Competency Graph", desc: "Adjacency + relationship inference", status: "live", calls: "Continuous" },
@@ -21,14 +23,32 @@ const engines = [
   { icon: Shield, name: "Risk & Resilience", desc: "Concentration, attrition, scarcity", status: "live", calls: "Hourly" },
 ];
 
-const candidates = [
-  { name: "Maya Chen", role: "Senior ML Engineer", match: 94, gaps: 1, badges: ["LLM Eval", "PyTorch"] },
-  { name: "Rohan Patel", role: "ML Engineer II", match: 89, gaps: 2, badges: ["PyTorch", "Vector DB"] },
-  { name: "Lin Wang", role: "Applied Scientist", match: 86, gaps: 2, badges: ["RAG", "Eval"] },
-  { name: "Sara Okafor", role: "Data Scientist", match: 81, gaps: 3, badges: ["Python", "MLOps"] },
+const fallbackCandidates: AIMatchingResponse["candidates"] = [
+  { name: "Maya Chen", role: "Senior ML Engineer", match: 94, gaps: 1, badges: ["LLM Eval", "PyTorch"], capacityAvailable: 2 },
+  { name: "Rohan Patel", role: "ML Engineer II", match: 89, gaps: 2, badges: ["PyTorch", "Vector DB"], capacityAvailable: 1 },
+  { name: "Lin Wang", role: "Applied Scientist", match: 86, gaps: 2, badges: ["RAG", "Eval"], capacityAvailable: 2 },
+  { name: "Sara Okafor", role: "Data Scientist", match: 81, gaps: 3, badges: ["Python", "MLOps"], capacityAvailable: 3 },
 ];
 
+const engineIconByName = {
+  "Matching Engine": GitMerge,
+  "Skill Extraction": Brain,
+  "Competency Graph": Network,
+  "Workforce Forecast": TrendingUp,
+  "Pyramid Mix": Layers,
+  "Risk & Resilience": Shield,
+} as const;
+
 function AIMatching() {
+  const aiQuery = useQuery({ queryKey: ["ai-matching"], queryFn: () => api.getAIMatching("DM-2026-000145") });
+  const engines = (aiQuery.data?.engines || fallbackEngines).map((engine, index) => ({
+    ...engine,
+    icon:
+      engineIconByName[engine.name as keyof typeof engineIconByName] ||
+      fallbackEngines[index % fallbackEngines.length].icon,
+  }));
+  const candidates = aiQuery.data?.candidates || fallbackCandidates;
+
   return (
     <>
       <PageHeader
@@ -117,7 +137,9 @@ function AIMatching() {
                     <span key={b} className="text-[11px] px-2 py-0.5 rounded bg-muted text-muted-foreground">{b}</span>
                   ))}
                 </div>
-                <div className="text-xs text-muted-foreground hidden sm:block">{c.gaps} gaps</div>
+                <div className="text-xs text-muted-foreground hidden sm:block">
+                  {c.capacityAvailable !== undefined ? `${c.capacityAvailable} slots free` : `${c.gaps} gaps`}
+                </div>
                 <div className="w-32">
                   <div className="flex justify-between text-[11px] mb-1">
                     <span className="text-muted-foreground">Match</span>

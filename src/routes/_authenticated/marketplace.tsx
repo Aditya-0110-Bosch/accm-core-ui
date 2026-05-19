@@ -1,9 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { PageBody, PageHeader } from "@/components/page";
-import { MapPin, Clock, Users, Sparkles, ArrowRight, Filter, Plus, CheckCircle2 } from "lucide-react";
+import { MapPin, Clock, Users, Sparkles, ArrowRight, Filter, Plus, CheckCircle2, UserCheck } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { DemandWizard, nextDemandId, type Demand } from "@/components/demand-wizard";
+import { api } from "@/lib/api";
 
 export const Route = createFileRoute("/_authenticated/marketplace")({
   head: () => ({
@@ -15,65 +17,60 @@ export const Route = createFileRoute("/_authenticated/marketplace")({
   component: Marketplace,
 });
 
-const seedDemands: Demand[] = [
-  {
-    id: "DM-2026-000145",
-    role: "Senior ML Engineer",
-    cluster: "Data, AI & ML",
-    skills: ["LLM Eval", "PyTorch", "Vector DB"],
-    loc: "Bengaluru · Hybrid",
-    duration: "9 months",
-    priority: "Critical",
-    applicants: 14,
-    match: 92,
-    status: "Sourcing",
-  },
-  {
-    id: "DM-2026-000142",
-    role: "Cloud Architect",
-    cluster: "Engineering & Cloud",
-    skills: ["AWS", "Terraform", "EKS"],
-    loc: "London · Remote",
-    duration: "12 months",
-    priority: "High",
-    applicants: 28,
-    match: 87,
-    status: "Shortlisting",
-  },
-  {
-    id: "DM-2026-000139",
-    role: "Product Designer, Platform",
-    cluster: "Product & Design",
-    skills: ["Design Systems", "Figma", "Research"],
-    loc: "Remote · EMEA",
-    duration: "6 months",
-    priority: "Medium",
-    applicants: 22,
-    match: 81,
-    status: "Sourcing",
-  },
-  {
-    id: "DM-2026-000136",
-    role: "Forward Deployed Engineer",
-    cluster: "Strategy & Consulting",
-    skills: ["Python", "Client Delivery", "RAG"],
-    loc: "New York · Onsite",
-    duration: "18 months",
-    priority: "Critical",
-    applicants: 9,
-    match: 78,
-    status: "Approved",
-  },
-];
-
 const stages = ["Draft", "Approved", "Sourcing", "Shortlisting", "Fulfilled"];
 
 function Marketplace() {
-  const [demands, setDemands] = useState<Demand[]>(seedDemands);
+  const queryClient = useQueryClient();
   const [wizardOpen, setWizardOpen] = useState(false);
-  const previewId = useMemo(() => nextDemandId(demands), [demands]);
+  const [priorityFilter, setPriorityFilter] = useState<"All" | "Critical" | "High" | "Medium">("All");
+  const marketplaceQuery = useQuery({
+    queryKey: ["marketplace"],
+    queryFn: api.getMarketplace,
+  });
+  const createDemand = useMutation({
+    mutationFn: api.createDemand,
+    onSuccess: (newDemand) => {
+      queryClient.setQueryData<{ demands: Demand[] }>(["marketplace"], (prev) => ({
+        demands: [newDemand, ...(prev?.demands || [])],
+      }));
+    },
+  });
 
-  const handleCreate = (d: Demand) => setDemands((prev) => [d, ...prev]);
+  const allDemands = marketplaceQuery.data?.demands || [];
+  const demands = allDemands.filter((d) => (priorityFilter === "All" ? true : d.priority === priorityFilter));
+  const previewId = useMemo(() => nextDemandId(demands), [demands]);
+  const stageCounts = useMemo(
+    () => Object.fromEntries(stages.map((stage) => [stage, allDemands.filter((d) => d.status === stage).length])),
+    [allDemands]
+  );
+
+  const handleCreate = async (payload: {
+    role: string;
+    cluster: string;
+    skills: string[];
+    loc: string;
+    duration: string;
+    priority: Demand["priority"];
+    count: number;
+  }) => {
+    await createDemand.mutateAsync(payload);
+    void queryClient.invalidateQueries({ queryKey: ["overview"] });
+  };
+
+  if (marketplaceQuery.isLoading) {
+    return (
+      <>
+        <PageHeader
+          eyebrow="Demand Allocation"
+          title="Demand Marketplace"
+          description="Create demand. Match talent. Track fulfillment — all in one continuous workflow."
+        />
+        <PageBody>
+          <div className="rounded-xl border border-border bg-card p-6 text-sm text-muted-foreground">Loading marketplace data...</div>
+        </PageBody>
+      </>
+    );
+  }
 
   return (
     <>
@@ -134,7 +131,7 @@ function Marketplace() {
         <div>
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-base font-semibold">Pipeline</h2>
-            <span className="text-xs text-muted-foreground">128 active demands</span>
+            <span className="text-xs text-muted-foreground">{allDemands.length} active demands</span>
           </div>
           <div className="rounded-xl border border-border bg-card p-2 flex">
             {stages.map((s, i) => (
@@ -145,7 +142,7 @@ function Marketplace() {
                 )}>{i + 1}</span>
                 <div>
                   <div className="text-sm font-medium">{s}</div>
-                  <div className="text-[11px] text-muted-foreground">{[12, 18, 64, 22, 12][i]} demands</div>
+                  <div className="text-[11px] text-muted-foreground">{stageCounts[s] || 0} demands</div>
                 </div>
                 {i < stages.length - 1 && <div className="flex-1 h-px bg-border ml-2" />}
               </div>
@@ -158,10 +155,10 @@ function Marketplace() {
           <div className="flex items-center justify-between mb-3">
             <h2 className="text-base font-semibold">Open demands</h2>
             <div className="flex gap-1 text-xs">
-              {["All", "Critical", "Mine", "Closing soon"].map((t, i) => (
-                <button key={t} className={cn(
+              {(["All", "Critical", "High", "Medium"] as const).map((t) => (
+                <button key={t} onClick={() => setPriorityFilter(t)} className={cn(
                   "px-2.5 py-1 rounded-md transition",
-                  i === 0 ? "bg-foreground text-background" : "text-muted-foreground hover:bg-muted"
+                  priorityFilter === t ? "bg-foreground text-background" : "text-muted-foreground hover:bg-muted"
                 )}>{t}</button>
               ))}
             </div>
@@ -207,12 +204,36 @@ function Marketplace() {
                   ))}
                 </div>
 
-                <div className="mt-4 pt-4 border-t border-border flex items-center justify-between text-xs text-muted-foreground">
-                  <div className="flex items-center gap-3">
-                    <span className="inline-flex items-center gap-1"><MapPin className="h-3 w-3" />{d.loc}</span>
-                    <span className="inline-flex items-center gap-1"><Clock className="h-3 w-3" />{d.duration}</span>
+                <div className="mt-4 pt-4 border-t border-border space-y-3">
+                  <div className="flex items-center justify-between text-xs text-muted-foreground">
+                    <div className="flex items-center gap-3">
+                      <span className="inline-flex items-center gap-1"><MapPin className="h-3 w-3" />{d.loc}</span>
+                      <span className="inline-flex items-center gap-1"><Clock className="h-3 w-3" />{d.duration}</span>
+                    </div>
+                    <span className="inline-flex items-center gap-1"><Users className="h-3 w-3" />{d.applicants} allocated</span>
                   </div>
-                  <span className="inline-flex items-center gap-1"><Users className="h-3 w-3" />{d.applicants} applicants</span>
+
+                  {d.allocations && d.allocations.length > 0 && (
+                    <div className="rounded-lg bg-muted/50 p-2.5 space-y-1.5">
+                      <p className="text-[11px] font-medium uppercase tracking-wider text-muted-foreground flex items-center gap-1">
+                        <UserCheck className="h-3 w-3" /> AI allocated
+                      </p>
+                      {d.allocations.map((a) => (
+                        <div key={a.talent_id} className="flex items-center justify-between gap-2 text-xs">
+                          <div className="min-w-0">
+                            <span className="font-medium">{a.name}</span>
+                            <span className="text-muted-foreground"> · {a.role}</span>
+                          </div>
+                          <div className="shrink-0 flex items-center gap-2 text-muted-foreground">
+                            {a.utilization !== undefined && (
+                              <span>{100 - a.utilization}% free</span>
+                            )}
+                            <span className="font-semibold text-brand">{a.match}%</span>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
                 </div>
               </div>
             ))}

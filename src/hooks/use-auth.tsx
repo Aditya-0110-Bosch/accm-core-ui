@@ -1,79 +1,77 @@
 import { createContext, useContext, useEffect, useState, useCallback, type ReactNode } from "react";
-import type { Session, User } from "@supabase/supabase-js";
-import { supabase } from "@/integrations/supabase/client";
+import USERS_RAW from "@/data/users.json";
 
 export type AppRole = "admin" | "pmo" | "manager" | "rm" | "associate";
 
+export type StaticUser = {
+  id: string;
+  email: string;
+  fullName: string;
+  roles: AppRole[];
+};
+
+type UserRecord = StaticUser & { password: string };
+const USERS = USERS_RAW as UserRecord[];
+
 type AuthState = {
-  user: User | null;
-  session: Session | null;
+  user: StaticUser | null;
   roles: AppRole[];
   loading: boolean;
   hasRole: (r: AppRole) => boolean;
   hasAnyRole: (rs: AppRole[]) => boolean;
-  signOut: () => Promise<void>;
+  signIn: (email: string, password: string) => Promise<{ error: string | null }>;
+  signOut: () => void;
 };
 
+const SESSION_KEY = "accm_session";
 const AuthContext = createContext<AuthState | undefined>(undefined);
 
-async function fetchRoles(userId: string): Promise<AppRole[]> {
-  const { data, error } = await supabase
-    .from("user_roles")
-    .select("role")
-    .eq("user_id", userId);
-  if (error) {
-    console.error("[auth] roles fetch failed", error);
-    return [];
-  }
-  return (data ?? []).map((r) => r.role as AppRole);
-}
-
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<User | null>(null);
-  const [session, setSession] = useState<Session | null>(null);
-  const [roles, setRoles] = useState<AppRole[]>([]);
+  const [user, setUser] = useState<StaticUser | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // Rehydrate session from localStorage on mount
   useEffect(() => {
-    // Set up listener FIRST
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, sess) => {
-      setSession(sess);
-      setUser(sess?.user ?? null);
-      if (sess?.user) {
-        // Defer Supabase calls to avoid auth deadlocks
-        setTimeout(() => {
-          fetchRoles(sess.user.id).then(setRoles);
-        }, 0);
-      } else {
-        setRoles([]);
+    try {
+      const raw = localStorage.getItem(SESSION_KEY);
+      if (raw) {
+        const saved = JSON.parse(raw) as StaticUser;
+        // Validate the saved user still exists in the static list
+        const valid = USERS.find((u) => u.id === saved.id && u.email === saved.email);
+        if (valid) {
+          setUser({ id: valid.id, email: valid.email, fullName: valid.fullName, roles: valid.roles });
+        } else {
+          localStorage.removeItem(SESSION_KEY);
+        }
       }
-    });
-
-    // THEN check existing session
-    supabase.auth.getSession().then(({ data: { session: sess } }) => {
-      setSession(sess);
-      setUser(sess?.user ?? null);
-      if (sess?.user) {
-        fetchRoles(sess.user.id).then((rs) => {
-          setRoles(rs);
-          setLoading(false);
-        });
-      } else {
-        setLoading(false);
-      }
-    });
-
-    return () => subscription.unsubscribe();
+    } catch {
+      localStorage.removeItem(SESSION_KEY);
+    } finally {
+      setLoading(false);
+    }
   }, []);
 
-  const hasRole = useCallback((r: AppRole) => roles.includes(r), [roles]);
-  const hasAnyRole = useCallback((rs: AppRole[]) => rs.some((r) => roles.includes(r)), [roles]);
-  const signOut = useCallback(async () => {
-    await supabase.auth.signOut();
+  const signIn = useCallback(async (email: string, password: string): Promise<{ error: string | null }> => {
+    const found = USERS.find(
+      (u) => u.email.toLowerCase() === email.trim().toLowerCase() && u.password === password
+    );
+    if (!found) return { error: "Invalid email or password." };
+    const session: StaticUser = { id: found.id, email: found.email, fullName: found.fullName, roles: found.roles };
+    localStorage.setItem(SESSION_KEY, JSON.stringify(session));
+    setUser(session);
+    return { error: null };
   }, []);
+
+  const signOut = useCallback(() => {
+    localStorage.removeItem(SESSION_KEY);
+    setUser(null);
+  }, []);
+
+  const hasRole = useCallback((r: AppRole) => user?.roles.includes(r) ?? false, [user]);
+  const hasAnyRole = useCallback((rs: AppRole[]) => rs.some((r) => user?.roles.includes(r)), [user]);
 
   return (
-    <AuthContext.Provider value={{ user, session, roles, loading, hasRole, hasAnyRole, signOut }}>
+    <AuthContext.Provider value={{ user, roles: user?.roles ?? [], loading, hasRole, hasAnyRole, signIn, signOut }}>
       {children}
     </AuthContext.Provider>
   );
@@ -81,12 +79,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
 const DEFAULT_AUTH: AuthState = {
   user: null,
-  session: null,
   roles: [],
-  loading: true,
+  loading: false,
   hasRole: () => false,
   hasAnyRole: () => false,
-  signOut: async () => {},
+  signIn: async () => ({ error: "Auth not initialised." }),
+  signOut: () => {},
 };
 
 export function useAuth() {

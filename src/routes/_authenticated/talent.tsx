@@ -1,6 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
 import { PageBody, PageHeader } from "@/components/page";
 import { Briefcase, GraduationCap, ArrowRight, Sparkles, MapPin, FileText } from "lucide-react";
+import { api } from "@/lib/api";
 
 export const Route = createFileRoute("/_authenticated/talent")({
   head: () => ({
@@ -13,6 +15,19 @@ export const Route = createFileRoute("/_authenticated/talent")({
 });
 
 function Talent() {
+  const talentQuery = useQuery({ queryKey: ["talent"], queryFn: api.getTalent });
+  const profile = talentQuery.data?.profile || {
+    name: "Aarav Raman",
+    location: "Bengaluru",
+    role: "Senior Engineer",
+    completeness: 86,
+  };
+  const initials = profile.name
+    .split(" ")
+    .map((n) => n[0])
+    .slice(0, 2)
+    .join("");
+
   return (
     <>
       <PageHeader
@@ -28,20 +43,20 @@ function Talent() {
             <div className="rounded-2xl border border-border bg-card p-6 bg-gradient-aurora">
               <div className="flex items-center gap-3">
                 <div className="h-14 w-14 rounded-full bg-gradient-brand grid place-items-center text-lg font-semibold text-brand-foreground">
-                  AR
+                  {initials}
                 </div>
                 <div>
-                  <p className="text-base font-semibold">Aarav Raman</p>
-                  <p className="text-xs text-muted-foreground">Senior Engineer · Bengaluru</p>
+                  <p className="text-base font-semibold">{profile.name}</p>
+                  <p className="text-xs text-muted-foreground">{profile.role} · {profile.location}</p>
                 </div>
               </div>
               <div className="mt-5">
                 <div className="flex justify-between text-xs mb-1.5">
                   <span className="text-muted-foreground">Profile completeness</span>
-                  <span className="font-semibold">86%</span>
+                  <span className="font-semibold">{profile.completeness}%</span>
                 </div>
                 <div className="h-1.5 rounded-full bg-muted overflow-hidden">
-                  <div className="h-full bg-gradient-brand" style={{ width: "86%" }} />
+                  <div className="h-full bg-gradient-brand" style={{ width: `${profile.completeness}%` }} />
                 </div>
               </div>
               <button className="mt-4 w-full h-9 rounded-md bg-foreground text-background text-sm font-medium inline-flex items-center justify-center gap-1.5">
@@ -52,7 +67,7 @@ function Talent() {
             <div className="rounded-xl border border-border bg-card p-5">
               <p className="text-xs uppercase tracking-wider text-muted-foreground font-medium mb-3">Top skills</p>
               <div className="flex flex-wrap gap-1.5">
-                {["Kubernetes", "AWS", "Terraform", "Go", "Postgres", "RAG", "System Design"].map((s) => (
+                {(talentQuery.data?.topSkills || ["Kubernetes", "AWS", "Terraform", "Go", "Postgres", "RAG", "System Design"]).map((s) => (
                   <span key={s} className="text-xs px-2.5 py-1 rounded-md bg-muted">{s}</span>
                 ))}
               </div>
@@ -65,11 +80,11 @@ function Talent() {
             <div>
               <h3 className="text-base font-semibold mb-3">My applications</h3>
               <div className="rounded-xl border border-border bg-card divide-y divide-border">
-                {[
+                {(talentQuery.data?.applications || [
                   { id: "DM-2026-000142", role: "Cloud Architect", stage: "Shortlisted", match: 91 },
                   { id: "DM-2026-000128", role: "Platform Engineer", stage: "Interview", match: 88 },
                   { id: "DM-2026-000117", role: "SRE Lead", stage: "Submitted", match: 79 },
-                ].map((a) => (
+                ]).map((a) => (
                   <div key={a.id} className="p-4 flex items-center gap-4">
                     <div className="h-9 w-9 rounded-md bg-accent grid place-items-center">
                       <Briefcase className="h-4 w-4 text-accent-foreground" strokeWidth={1.75} />
@@ -97,12 +112,12 @@ function Talent() {
                 </span>
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                {[
+                {(talentQuery.data?.recommendations || [
                   { role: "Principal Cloud Architect", match: 94, loc: "Remote · APAC" },
                   { role: "Platform Tech Lead", match: 90, loc: "Bengaluru" },
                   { role: "Staff SRE", match: 87, loc: "Hybrid · Hyderabad" },
                   { role: "Solutions Architect", match: 84, loc: "Remote" },
-                ].map((r) => (
+                ]).map((r) => (
                   <div key={r.role} className="rounded-xl border border-border bg-card p-4 hover:border-ring/40 transition">
                     <div className="flex items-start justify-between">
                       <p className="text-sm font-semibold">{r.role}</p>

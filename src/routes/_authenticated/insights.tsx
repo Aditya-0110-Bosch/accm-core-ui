@@ -1,6 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { useQuery } from "@tanstack/react-query";
 import { PageBody, PageHeader } from "@/components/page";
 import { TrendingUp, TrendingDown, Sparkles, ArrowRight } from "lucide-react";
+import { api } from "@/lib/api";
 
 export const Route = createFileRoute("/_authenticated/insights")({
   head: () => ({
@@ -12,7 +14,7 @@ export const Route = createFileRoute("/_authenticated/insights")({
   component: Insights,
 });
 
-const outcomes = [
+const fallbackOutcomes = [
   { label: "Time to staff", value: "6.2d", delta: -28, positive: true, sub: "vs. 8.6d baseline" },
   { label: "Internal mobility", value: "34%", delta: 11, positive: true, sub: "of fulfilled demands" },
   { label: "Skill gap closure", value: "78%", delta: 6, positive: true, sub: "across critical clusters" },
@@ -20,6 +22,15 @@ const outcomes = [
 ];
 
 function Insights() {
+  const insightsQuery = useQuery({ queryKey: ["insights"], queryFn: api.getInsights });
+  const outcomes = insightsQuery.data?.outcomes || fallbackOutcomes;
+  const forecast = insightsQuery.data?.forecast || [
+    { q: "Q2", d: 60, s: 72 },
+    { q: "Q3", d: 78, s: 70 },
+    { q: "Q4", d: 88, s: 74 },
+    { q: "Q1", d: 95, s: 80 },
+  ];
+
   return (
     <>
       <PageHeader
@@ -103,12 +114,7 @@ function Insights() {
             </div>
           </div>
           <div className="mt-6 grid grid-cols-4 gap-4 items-end h-48">
-            {[
-              { q: "Q2", d: 60, s: 72 },
-              { q: "Q3", d: 78, s: 70 },
-              { q: "Q4", d: 88, s: 74 },
-              { q: "Q1", d: 95, s: 80 },
-            ].map((b) => (
+            {forecast.map((b) => (
               <div key={b.q} className="flex flex-col items-center gap-2">
                 <div className="w-full flex items-end gap-1.5 h-40">
                   <div className="flex-1 rounded-t-md bg-gradient-brand" style={{ height: `${b.d}%` }} />

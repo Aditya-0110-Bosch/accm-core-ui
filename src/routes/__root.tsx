@@ -9,7 +9,9 @@ import {
 } from "@tanstack/react-router";
 
 import appCss from "../styles.css?url";
-import { AuthProvider } from "@/hooks/use-auth";
+import { AppShell } from "@/components/app-shell";
+import { AICopilot } from "@/components/ai-copilot";
+import { CopilotProvider } from "@/components/copilot-provider";
 
 function NotFoundComponent() {
   return (
@@ -113,9 +115,12 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <Outlet />
-      </AuthProvider>
+      <CopilotProvider>
+        <AppShell>
+          <Outlet />
+        </AppShell>
+        <AICopilot />
+      </CopilotProvider>
     </QueryClientProvider>
   );
 }

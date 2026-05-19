@@ -1,5 +1,6 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { PageBody, PageHeader } from "@/components/page";
 import {
   ShieldCheck,
@@ -14,6 +15,7 @@ import {
   ArrowRight,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { api } from "@/lib/api";
 
 export const Route = createFileRoute("/_authenticated/governance")({
   head: () => ({
@@ -38,7 +40,7 @@ type Role = {
   highlight?: boolean;
 };
 
-const roles: Role[] = [
+const fallbackRoles: Role[] = [
   { id: "admin", name: "Admin", icon: ShieldCheck, members: 6, scope: "Platform-wide governance" },
   { id: "pmo", name: "PMO Office", icon: Briefcase, members: 14, scope: "Projects, demand, governance", highlight: true },
   { id: "pm", name: "Project Manager", icon: UserCheck, members: 84, scope: "Owned projects + demand" },
@@ -48,7 +50,7 @@ const roles: Role[] = [
   { id: "exec", name: "Leadership", icon: Crown, members: 9, scope: "Org-wide capability insights" },
 ];
 
-const capabilities = [
+const fallbackCapabilities = [
   "Projects",
   "Demands",
   "Talent pools",
@@ -58,10 +60,10 @@ const capabilities = [
   "Reports",
 ] as const;
 
-type Cap = (typeof capabilities)[number];
+type Cap = (typeof fallbackCapabilities)[number];
 type Level = "full" | "scoped" | "read" | "none";
 
-const matrix: Record<string, Record<Cap, Level>> = {
+const fallbackMatrix: Record<string, Record<Cap, Level>> = {
   admin: { Projects: "full", Demands: "full", "Talent pools": "full", Skills: "full", Allocations: "full", Approvals: "full", Reports: "full" },
   pmo: { Projects: "full", Demands: "full", "Talent pools": "read", Skills: "scoped", Allocations: "scoped", Approvals: "full", Reports: "full" },
   pm: { Projects: "scoped", Demands: "scoped", "Talent pools": "read", Skills: "read", Allocations: "read", Approvals: "scoped", Reports: "scoped" },
@@ -72,6 +74,40 @@ const matrix: Record<string, Record<Cap, Level>> = {
 };
 
 function Governance() {
+  const governanceQuery = useQuery({ queryKey: ["governance"], queryFn: api.getGovernance });
+  const iconMap: Record<string, typeof ShieldCheck> = {
+    admin: ShieldCheck,
+    pmo: Briefcase,
+    pm: UserCheck,
+    delivery: Sparkles,
+    rm: Users,
+    talent: Users,
+    exec: Crown,
+  };
+  const roles: Role[] = (governanceQuery.data?.roles || fallbackRoles).map((role) => ({
+    ...role,
+    icon: iconMap[role.id] || ShieldCheck,
+  }));
+  const capabilities = (governanceQuery.data?.capabilities as Cap[] | undefined) || fallbackCapabilities;
+  const matrix = (governanceQuery.data?.matrix as Record<string, Record<Cap, Level>> | undefined) || fallbackMatrix;
+  const workflows = governanceQuery.data?.workflows || [
+    {
+      title: "Demand approval",
+      stages: ["PM submits", "PMO review", "Resource Mgr", "Published"],
+      meta: "Auto-route via business rules",
+    },
+    {
+      title: "Allocation approval",
+      stages: ["Match generated", "RM review", "Delivery Mgr sign-off", "Allocated"],
+      meta: "Triggers utilization recalculation",
+    },
+    {
+      title: "Project creation",
+      stages: ["PMO drafts", "BU Head approval", "Charter signed", "Active"],
+      meta: "Required for any new engagement",
+    },
+  ];
+
   const [active, setActive] = useState<string>("pmo");
   const r = roles.find((x) => x.id === active)!;
 
@@ -178,7 +214,7 @@ function Governance() {
             </div>
 
             {/* Approval workflows */}
-            <ApprovalWorkflows />
+            <ApprovalWorkflows flows={workflows} />
           </div>
         </div>
       </PageBody>
@@ -225,24 +261,11 @@ function LevelCell({ level }: { level: Level }) {
   );
 }
 
-function ApprovalWorkflows() {
-  const flows = [
-    {
-      title: "Demand approval",
-      stages: ["PM submits", "PMO review", "Resource Mgr", "Published"],
-      meta: "Auto-route via business rules",
-    },
-    {
-      title: "Allocation approval",
-      stages: ["Match generated", "RM review", "Delivery Mgr sign-off", "Allocated"],
-      meta: "Triggers utilization recalculation",
-    },
-    {
-      title: "Project creation",
-      stages: ["PMO drafts", "BU Head approval", "Charter signed", "Active"],
-      meta: "Required for any new engagement",
-    },
-  ];
+function ApprovalWorkflows({
+  flows,
+}: {
+  flows: Array<{ title: string; stages: string[]; meta: string }>;
+}) {
   return (
     <div className="rounded-xl border border-border bg-card p-5">
       <div className="flex items-center justify-between mb-4">

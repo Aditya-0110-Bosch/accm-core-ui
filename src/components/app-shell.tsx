@@ -17,6 +17,7 @@ import {
 import { useState, useRef, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { CocaColaMark, CocaColaBadge } from "@/components/coca-cola-mark";
+import { useCopilot } from "@/components/copilot-provider";
 import { useAuth, type AppRole } from "@/hooks/use-auth";
 
 type NavItem = {
@@ -120,27 +121,31 @@ const ROLE_LABEL: Record<AppRole, string> = {
 };
 
 function Topbar() {
+  const [query, setQuery] = useState("");
+  const { openWithPrompt, setOpen: setCopilotOpen } = useCopilot();
   const { user, roles, signOut } = useAuth();
   const navigate = useNavigate();
-  const [open, setOpen] = useState(false);
   const ref = useRef<HTMLDivElement>(null);
+  const [open, setOpen] = useState(false);
 
-  useEffect(() => {
-    const onClick = (e: MouseEvent) => {
-      if (ref.current && !ref.current.contains(e.target as Node)) setOpen(false);
-    };
-    document.addEventListener("mousedown", onClick);
-    return () => document.removeEventListener("mousedown", onClick);
-  }, []);
-
-  const initials = (user?.user_metadata?.full_name || user?.email || "?")
-    .split(/[\s@]/)
-    .filter(Boolean)
+  const initials = user?.fullName
+    ?.split(" ")
+    .map((n) => n[0])
+    .join("")
     .slice(0, 2)
-    .map((s: string) => s[0]?.toUpperCase())
-    .join("");
+    .toUpperCase() ?? user?.email?.[0]?.toUpperCase();
 
   const primaryRole = roles[0] ? ROLE_LABEL[roles[0]] : "No role";
+
+  useEffect(() => {
+    function handleClickOutside(e: MouseEvent) {
+      if (ref.current && !ref.current.contains(e.target as Node)) {
+        setOpen(false);
+      }
+    }
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
 
   return (
     <header className="sticky top-0 z-30 h-14 border-b border-border bg-background/80 backdrop-blur-md flex items-center gap-3 px-6">
@@ -150,6 +155,16 @@ function Topbar() {
       <div className="relative flex-1 max-w-xl">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" strokeWidth={1.75} />
         <input
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          onFocus={() => setCopilotOpen(true)}
+          onKeyDown={(e) => {
+            if (e.key === "Enter" && query.trim()) {
+              e.preventDefault();
+              void openWithPrompt(query);
+              setQuery("");
+            }
+          }}
           placeholder="Ask anything · find skills, people, demands…"
           className="w-full h-9 pl-9 pr-16 rounded-md bg-muted text-sm placeholder:text-muted-foreground border border-transparent focus:outline-none focus:bg-surface-elevated focus:border-border focus:ring-2 focus:ring-ring/20 transition"
         />
@@ -158,7 +173,10 @@ function Topbar() {
         </kbd>
       </div>
       <div className="flex items-center gap-1.5">
-        <button className="h-9 px-3 inline-flex items-center gap-1.5 text-sm font-medium rounded-md bg-gradient-brand text-brand-foreground shadow-sm hover:opacity-95 transition">
+        <button
+          onClick={() => void openWithPrompt("Create demand; role: Senior ML Engineer; cluster: Data, AI & ML; skills: PyTorch, LLM Eval, Vector DB; loc: Bengaluru - Hybrid; duration: 9 months; priority: Critical")}
+          className="h-9 px-3 inline-flex items-center gap-1.5 text-sm font-medium rounded-md bg-gradient-brand text-brand-foreground shadow-sm hover:opacity-95 transition"
+        >
           <Plus className="h-4 w-4" strokeWidth={2} />
           New Demand
         </button>
@@ -175,7 +193,7 @@ function Topbar() {
           {open && (
             <div className="absolute right-0 top-10 w-60 rounded-lg border border-border bg-popover shadow-elevated p-1.5 text-sm">
               <div className="px-3 py-2 border-b border-border">
-                <p className="font-medium truncate">{user?.user_metadata?.full_name || user?.email}</p>
+                <p className="font-medium truncate">{user?.fullName || user?.email}</p>
                 <p className="text-[11px] text-muted-foreground truncate">{user?.email}</p>
                 <div className="mt-1.5 flex flex-wrap gap-1">
                   {roles.length > 0 ? (
@@ -190,9 +208,9 @@ function Topbar() {
                 </div>
               </div>
               <button
-                onClick={async () => {
-                  await signOut();
-                  navigate({ to: "/login" });
+                onClick={() => {
+                  signOut();
+                  navigate({ to: "/login", search: { redirect: "/" } });
                 }}
                 className="w-full flex items-center gap-2 px-3 py-2 rounded-md hover:bg-muted transition text-left"
               >
