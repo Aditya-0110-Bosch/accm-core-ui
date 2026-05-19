@@ -41,35 +41,12 @@ function formatAllocationReply(created: {
   role: string;
   loc: string;
   priority: string;
-  allocations?: Array<{
-    name: string;
-    role: string;
-    match: number;
-    utilization?: number;
-    capacity_available?: number;
-  }>;
-  allocationMessage?: string;
 }) {
-  const lines = [
-    `Demand ${created.id} created for ${created.role} in ${created.loc} (${created.priority} priority).`,
-  ];
-
-  if (created.allocations && created.allocations.length > 0) {
-    lines.push("", "AI allocation complete — matched by skills and available capacity:");
-    for (const person of created.allocations) {
-      const capacity =
-        person.capacity_available !== undefined
-          ? `${person.capacity_available} slot(s) free`
-          : person.utilization !== undefined
-            ? `${100 - person.utilization}% capacity free`
-            : "capacity available";
-      lines.push(`- ${person.name} (${person.role}) · ${person.match}% match · ${capacity}`);
-    }
-  } else if (created.allocationMessage) {
-    lines.push("", created.allocationMessage);
-  }
-
-  return lines.join("\n");
+  return [
+    `Demand **${created.id}** created for **${created.role}** in ${created.loc} (${created.priority} priority).`,
+    "",
+    `When you're ready to allocate, say: **allocate demand ${created.id}**`,
+  ].join("\n");
 }
 
 function parseCreateDemand(text: string) {
