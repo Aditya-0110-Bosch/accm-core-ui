@@ -115,12 +115,11 @@ function RootComponent() {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <CopilotProvider>
-        <AppShell>
+      <AuthProvider>
+        <CopilotProvider>
           <Outlet />
-        </AppShell>
-        <AICopilot />
-      </CopilotProvider>
+        </CopilotProvider>
+      </AuthProvider>
     </QueryClientProvider>
   );
 }
