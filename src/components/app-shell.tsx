@@ -13,12 +13,14 @@ import {
   Bell,
   Plus,
   LogOut,
+  Upload,
 } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 import { cn } from "@/lib/utils";
 import { CocaColaMark, CocaColaBadge } from "@/components/coca-cola-mark";
 import { useCopilot } from "@/components/copilot-provider";
 import { useAuth, type AppRole } from "@/hooks/use-auth";
+import { api } from "@/lib/api";
 
 type NavItem = {
   to: string;
@@ -123,10 +125,12 @@ const ROLE_LABEL: Record<AppRole, string> = {
 function Topbar() {
   const [query, setQuery] = useState("");
   const { openWithPrompt, setOpen: setCopilotOpen } = useCopilot();
-  const { user, roles, signOut } = useAuth();
+  const { user, roles, signOut, hasAnyRole } = useAuth();
   const navigate = useNavigate();
   const ref = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const [open, setOpen] = useState(false);
+  const [uploading, setUploading] = useState(false);
 
   const initials = user?.fullName
     ?.split(" ")
@@ -173,13 +177,47 @@ function Topbar() {
         </kbd>
       </div>
       <div className="flex items-center gap-1.5">
-        <button
-          onClick={() => void openWithPrompt("Create demand; role: Senior ML Engineer; cluster: Data, AI & ML; skills: PyTorch, LLM Eval, Vector DB; loc: Bengaluru - Hybrid; duration: 9 months; priority: Critical")}
-          className="h-9 px-3 inline-flex items-center gap-1.5 text-sm font-medium rounded-md bg-gradient-brand text-brand-foreground shadow-sm hover:opacity-95 transition"
-        >
-          <Plus className="h-4 w-4" strokeWidth={2} />
-          New Demand
-        </button>
+        {hasAnyRole(["admin", "pmo"]) && (
+          <>
+            <input
+              ref={fileInputRef}
+              type="file"
+              accept=".csv"
+              className="hidden"
+              onChange={async (e) => {
+                const file = e.target.files?.[0];
+                if (!file) return;
+                setUploading(true);
+                try {
+                  const result = await api.uploadTalentCSV(file);
+                  alert(result.message);
+                } catch (err: any) {
+                  alert(`Upload failed: ${err.message}`);
+                } finally {
+                  setUploading(false);
+                  if (fileInputRef.current) fileInputRef.current.value = "";
+                }
+              }}
+            />
+            <button
+              onClick={() => fileInputRef.current?.click()}
+              disabled={uploading}
+              className="h-9 px-3 inline-flex items-center gap-1.5 text-sm font-medium rounded-md border border-border bg-surface-elevated hover:bg-muted transition disabled:opacity-50"
+            >
+              <Upload className="h-4 w-4" strokeWidth={2} />
+              {uploading ? "Uploading..." : "Upload Skill Matrix"}
+            </button>
+          </>
+        )}
+        {hasAnyRole(["admin", "pmo", "manager"]) && (
+          <button
+            onClick={() => void openWithPrompt("Create demand; role: Senior ML Engineer; cluster: Data, AI & ML; skills: PyTorch, LLM Eval, Vector DB; loc: Bengaluru - Hybrid; duration: 9 months; priority: Critical; capacity: 1.0")}
+            className="h-9 px-3 inline-flex items-center gap-1.5 text-sm font-medium rounded-md bg-gradient-brand text-brand-foreground shadow-sm hover:opacity-95 transition"
+          >
+            <Plus className="h-4 w-4" strokeWidth={2} />
+            New Demand
+          </button>
+        )}
         <button className="h-9 w-9 grid place-items-center rounded-md hover:bg-muted transition">
           <Bell className="h-4 w-4 text-muted-foreground" strokeWidth={1.75} />
         </button>

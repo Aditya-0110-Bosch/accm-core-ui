@@ -136,19 +136,24 @@ export type CandidatePreview = {
   role: string;
   location: string;
   match: number;
-  utilization: number;
-  capacity_available: number;
+  cluster: string;
+  total_capacity: number;
+  available_capacity: number;
   skills: string[];
+  experience_years: number;
 };
 
 export type CandidatesResponse = {
   demand_id: string;
+  required_capacity: number;
+  demand_skills: string[];
+  demand_cluster: string;
   candidates: CandidatePreview[];
 };
 
 export type ConfirmAllocationResponse = {
   demand_id: string;
-  allocated: DemandAllocation[];
+  allocated: Array<DemandAllocation & { allocated_capacity?: number }>;
   message: string;
 };
 
@@ -160,6 +165,7 @@ export const api = {
   createDemand: (
     payload: Omit<Demand, "id" | "applicants" | "match" | "status" | "isNew" | "allocations" | "allocationMessage"> & {
       count?: number;
+      required_capacity?: number;
     }
   ) => request<Demand>("/api/marketplace", { method: "POST", bodyJson: payload }),
   allocateDemand: (demandId: string, count?: number) =>
@@ -174,6 +180,25 @@ export const api = {
       method: "POST",
       bodyJson: { talent_ids: talentIds },
     }),
+  uploadTalentCSV: async (file: File) => {
+    const formData = new FormData();
+    formData.append("file", file);
+    const response = await fetch(`${API_BASE}/api/talent/upload-csv`, {
+      method: "POST",
+      body: formData,
+    });
+    if (!response.ok) {
+      const text = await response.text();
+      throw new Error(`API ${response.status}: ${text || response.statusText}`);
+    }
+    return (await response.json()) as { success: boolean; rows_processed: number; employees_updated: number; new_skills_added: number; message: string };
+  },
+  createProject: (payload: { name: string; client: string; bu: string; delivery?: string; timeline?: string }) =>
+    request<Project>("/api/projects", { method: "POST", bodyJson: payload }),
+  getNotifications: (recipientType = "management", recipientId = "all") =>
+    request<{ notifications: Array<{ id: number; title: string; message: string; demand_id: string; read: boolean; created_at: string }> }>(
+      `/api/notifications?recipient_type=${encodeURIComponent(recipientType)}&recipient_id=${encodeURIComponent(recipientId)}`
+    ),
   getSkills: () => request<SkillsResponse>("/api/skills"),
   getTalent: () => request<TalentResponse>("/api/talent"),
   getAIMatching: (demandId = "DM-2026-000145") =>

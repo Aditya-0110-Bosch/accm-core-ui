@@ -150,23 +150,35 @@ export function AICopilot() {
                 {pendingAllocation.candidates.map((c) => (
                   <div
                     key={c.talent_id}
-                    className="flex items-center justify-between gap-2 rounded-lg border border-border p-2.5 bg-muted/30"
+                    className="rounded-lg border border-border p-3 bg-muted/30 space-y-1.5"
                   >
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium truncate">{c.name}</p>
-                      <p className="text-xs text-muted-foreground">{c.role} · {c.location}</p>
-                      <p className="text-xs text-muted-foreground">
-                        {c.match}% match · {c.capacity_available} slot(s) free
-                      </p>
+                    <div className="flex items-start justify-between gap-2">
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-semibold truncate">{c.name}</p>
+                        <p className="text-xs text-muted-foreground">{c.role} · {c.location}</p>
+                      </div>
+                      <div className="flex items-center gap-1.5">
+                        <span className="text-xs font-bold text-green-600">{c.match}%</span>
+                        <button
+                          onClick={() => void approveCandidate(c.talent_id)}
+                          disabled={sending}
+                          className="shrink-0 h-7 w-7 grid place-items-center rounded-md bg-green-600 text-white hover:bg-green-700 disabled:opacity-50"
+                          title="Approve"
+                        >
+                          <Check className="h-3.5 w-3.5" strokeWidth={2} />
+                        </button>
+                      </div>
                     </div>
-                    <button
-                      onClick={() => void approveCandidate(c.talent_id)}
-                      disabled={sending}
-                      className="shrink-0 h-7 w-7 grid place-items-center rounded-md bg-green-600 text-white hover:bg-green-700 disabled:opacity-50"
-                      title="Approve"
-                    >
-                      <Check className="h-3.5 w-3.5" strokeWidth={2} />
-                    </button>
+                    <div className="flex flex-wrap gap-1">
+                      {c.skills?.map((s) => (
+                        <span key={s} className="text-[10px] px-1.5 py-0.5 rounded bg-brand/10 text-brand font-medium">{s}</span>
+                      ))}
+                    </div>
+                    <div className="flex items-center gap-3 text-[11px] text-muted-foreground">
+                      <span>Cluster: <strong className="text-foreground">{c.cluster}</strong></span>
+                      <span>Exp: <strong className="text-foreground">{c.experience_years}y</strong></span>
+                      <span>Capacity: <strong className="text-foreground">{c.available_capacity}/{c.total_capacity}</strong></span>
+                    </div>
                   </div>
                 ))}
                 <div className="flex gap-2 pt-1">

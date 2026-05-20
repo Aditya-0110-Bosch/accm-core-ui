@@ -68,6 +68,7 @@ export function DemandWizard({
     duration: string;
     priority: Demand["priority"];
     count: number;
+    required_capacity: number;
   }) => void | Promise<void>;
   nextId: string;
 }) {
@@ -82,6 +83,7 @@ export function DemandWizard({
   const [duration, setDuration] = useState("6 months");
   const [priority, setPriority] = useState<Demand["priority"]>("High");
   const [count, setCount] = useState(1);
+  const [requiredCapacity, setRequiredCapacity] = useState(1.0);
   const [submitting, setSubmitting] = useState(false);
 
   if (!open) return null;
@@ -97,7 +99,7 @@ export function DemandWizard({
     setProject(""); setRole(""); setCluster(CLUSTERS[0]);
     setSkills([]); setSkillInput("");
     setExperience("5+ yrs"); setLoc(""); setDuration("6 months");
-    setPriority("High"); setCount(1);
+    setPriority("High"); setCount(1); setRequiredCapacity(1.0);
   };
 
   const addSkill = () => {
@@ -118,6 +120,7 @@ export function DemandWizard({
         duration,
         priority,
         count,
+        required_capacity: requiredCapacity,
       });
       reset();
       onClose();
@@ -285,6 +288,14 @@ export function DemandWizard({
                   type="number" min={1} max={50}
                   value={count}
                   onChange={(e) => setCount(Math.max(1, parseInt(e.target.value) || 1))}
+                  className="input w-32"
+                />
+              </Field>
+              <Field label="Required capacity per person" hint="0.1 to 1.2 (e.g., 0.5 = half allocation)">
+                <input
+                  type="number" min={0.1} max={1.2} step={0.1}
+                  value={requiredCapacity}
+                  onChange={(e) => setRequiredCapacity(Math.min(1.2, Math.max(0.1, parseFloat(e.target.value) || 1.0)))}
                   className="input w-32"
                 />
               </Field>

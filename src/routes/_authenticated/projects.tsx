@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { PageBody, PageHeader } from "@/components/page";
 import {
   Plus,
@@ -129,9 +129,22 @@ const statusTone: Record<ProjectStatus, string> = {
 
 function ProjectsWorkspace() {
   const [filter, setFilter] = useState<"All" | "At Risk" | "Mine" | "Closing">("All");
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [newProject, setNewProject] = useState({ name: "", client: "", bu: "", delivery: "" });
+  const queryClient = useQueryClient();
+
   const projectsQuery = useQuery({
     queryKey: ["projects", filter],
     queryFn: () => api.getProjects(filter),
+  });
+
+  const createProject = useMutation({
+    mutationFn: api.createProject,
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["projects"] });
+      setShowCreateDialog(false);
+      setNewProject({ name: "", client: "", bu: "", delivery: "" });
+    },
   });
 
   const projects = useMemo(() => {
@@ -155,7 +168,10 @@ function ProjectsWorkspace() {
             <button className="h-9 px-3 inline-flex items-center gap-1.5 rounded-md border border-border bg-surface-elevated text-sm font-medium hover:bg-muted transition">
               <Filter className="h-4 w-4" /> Filter
             </button>
-            <button className="h-9 px-3.5 inline-flex items-center gap-1.5 rounded-md bg-gradient-brand text-brand-foreground text-sm font-medium shadow-sm hover:opacity-95 transition">
+            <button
+              onClick={() => setShowCreateDialog(true)}
+              className="h-9 px-3.5 inline-flex items-center gap-1.5 rounded-md bg-gradient-brand text-brand-foreground text-sm font-medium shadow-sm hover:opacity-95 transition"
+            >
               <Plus className="h-4 w-4" /> New project
             </button>
           </>
@@ -216,6 +232,57 @@ function ProjectsWorkspace() {
 
         <StaffingTimeline />
       </PageBody>
+
+      {/* Create Project Dialog */}
+      {showCreateDialog && (
+        <div className="fixed inset-0 z-50 grid place-items-center bg-black/40 backdrop-blur-sm">
+          <div className="w-full max-w-md rounded-xl border border-border bg-card p-6 shadow-elevated">
+            <h2 className="text-lg font-semibold">Create New Project</h2>
+            <p className="text-xs text-muted-foreground mt-1">PMO/Management can create projects.</p>
+            <div className="mt-4 space-y-3">
+              <input
+                placeholder="Project Name"
+                value={newProject.name}
+                onChange={(e) => setNewProject((p) => ({ ...p, name: e.target.value }))}
+                className="w-full h-9 px-3 rounded-md border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring/20"
+              />
+              <input
+                placeholder="Client"
+                value={newProject.client}
+                onChange={(e) => setNewProject((p) => ({ ...p, client: e.target.value }))}
+                className="w-full h-9 px-3 rounded-md border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring/20"
+              />
+              <input
+                placeholder="Business Unit (e.g. BFSI · BU-01)"
+                value={newProject.bu}
+                onChange={(e) => setNewProject((p) => ({ ...p, bu: e.target.value }))}
+                className="w-full h-9 px-3 rounded-md border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring/20"
+              />
+              <input
+                placeholder="Delivery Unit (e.g. DU-Bengaluru)"
+                value={newProject.delivery}
+                onChange={(e) => setNewProject((p) => ({ ...p, delivery: e.target.value }))}
+                className="w-full h-9 px-3 rounded-md border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-ring/20"
+              />
+            </div>
+            <div className="mt-5 flex items-center justify-end gap-2">
+              <button
+                onClick={() => setShowCreateDialog(false)}
+                className="h-9 px-4 rounded-md border border-border text-sm font-medium hover:bg-muted transition"
+              >
+                Cancel
+              </button>
+              <button
+                disabled={!newProject.name || !newProject.client || !newProject.bu || createProject.isPending}
+                onClick={() => createProject.mutate(newProject)}
+                className="h-9 px-4 rounded-md bg-gradient-brand text-brand-foreground text-sm font-medium shadow-sm hover:opacity-95 transition disabled:opacity-50"
+              >
+                {createProject.isPending ? "Creating..." : "Create Project"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

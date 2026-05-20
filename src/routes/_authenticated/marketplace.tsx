@@ -52,6 +52,7 @@ function Marketplace() {
     duration: string;
     priority: Demand["priority"];
     count: number;
+    required_capacity: number;
   }) => {
     await createDemand.mutateAsync(payload);
     void queryClient.invalidateQueries({ queryKey: ["overview"] });

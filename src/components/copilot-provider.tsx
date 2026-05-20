@@ -56,6 +56,7 @@ function parseCreateDemand(text: string) {
   const duration = extractField(text, "duration");
   const priority = extractField(text, "priority");
   const rawSkills = extractField(text, "skills");
+  const capacityStr = extractField(text, "capacity|cap");
   const skills = rawSkills
     .split(",")
     .map((s) => s.trim())
@@ -72,6 +73,8 @@ function parseCreateDemand(text: string) {
         ? "High"
         : "Medium";
 
+  const required_capacity = capacityStr ? Math.min(1.2, Math.max(0.1, parseFloat(capacityStr) || 1.0)) : 1.0;
+
   return {
     role,
     cluster,
@@ -79,6 +82,7 @@ function parseCreateDemand(text: string) {
     loc,
     duration,
     priority: normalizedPriority as "Critical" | "High" | "Medium",
+    required_capacity,
   };
 }
 
